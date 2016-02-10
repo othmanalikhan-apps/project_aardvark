@@ -4,10 +4,10 @@ This project involves development of a restaurant table booking and billing syst
 
 ## Todo:
 
-`git config --global user.name "username"
-`git config --global user.email "username@leeds.ac.uk"
+`git config --global user.name "username"`
+`git config --global user.email "username@leeds.ac.uk"`
 
-Use: `git clone https://gitlab.com/comp2541/aardvark.gitlab` from the terminal to get update.
+Use: `git clone https://gitlab.com/comp2541/aardvark.git` from the terminal to get update.
 
 See screenshot
 ![Todo](Screenshots/todo.png)
