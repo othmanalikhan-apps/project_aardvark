@@ -1,6 +1,6 @@
 # Restaurant Booking And Billing System (Team Aardvark)
 
-<<<<<<< 993ce5177cd397a7b2ce04085740ff9d0996e4d3
+<<<<<<< 5136bbf49e04c0eb1e2ddd13680961684aaea4b5
 The project involves the development of a restaurant table booking and billing system. So that would entail designing three main aspects: client, server & database. As of yet, we decided to implement all three aspects using Python.
 
 
@@ -56,4 +56,4 @@ See screenshot
 > Repository located at [Gitlab](https://gitlab.com/comp2541/aardvark)
 
 **Edit as necessary. Skeleton version**
->>>>>>> add food class
+>>>>>>> 'reverted' entire project
