@@ -15,7 +15,7 @@ See screenshot
 # Contacts
 * [Danilo Andrade](https://gitlab.com/u/ed11d2a)
 * [Jhighar Mistry](https://gitlab.com/u/sc14jm)
-* [Othman Ali Khan](https://gitlab.com/u/OthmanAlikhan)
+* [Othman Ali Khan](https://gitlab.com/u/sc14omsa)
 * [Pam Iwalewa](https://gitlab.com/u/sc13pi)
 * [Taiwo Kareem](https://gitlab.com/u/sc14tsk)
 
