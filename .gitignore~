@@ -66,7 +66,11 @@ target/
 .python-version
 
 # Vim
+<<<<<<< 993ce5177cd397a7b2ce04085740ff9d0996e4d3
+*.swp
+=======
 *.swp
 
 # Pycharm
 .idea
+>>>>>>> add food class
