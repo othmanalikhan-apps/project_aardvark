@@ -1,8 +1,10 @@
-# Aardvark Restaurant Booking/Billing System
+# Restaurant Booking And Billing System (Team Aardvark)
 
-This project involves development of a restaurant table booking and billing system
+The project involves the development of a restaurant table booking and billing system. So that would entail designing three main aspects: client, server & database.
 
-## Todo:
+## MESSAGE TO ALL AARDVARK MEMBERS (THINGS TO DO):
+
+Setup your git repository on your local machine by using the commands below,
 
 `git config --global user.name "username"`
 `git config --global user.email "username@leeds.ac.uk"`
