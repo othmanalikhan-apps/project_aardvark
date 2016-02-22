@@ -5,22 +5,23 @@ The client side of the restaurant server-client system
 __docformat__ = 'reStructuredText'
 
 import unittest
+from unittest.mock import MagicMock
 import requests
 
 
-class Client:
+class ClientLogic:
     """
     Responsible for handling customer requests and communicating to the
     server for additional information.
     """
 
-    def __init__(self, httpURL):
+    def __init__(self, httpURL="http://127.0.0.1:8000"):
         """
         Attempts to connect to the http server.
 
         :param httpURL: The host URL to be communicated to.
         """
-        self.hostURL = httpURL
+        self.url = httpURL
 
     def fetchBookingRef(self, customerName):
         """
@@ -30,11 +31,14 @@ class Client:
         :param customerName: The name of the customer.
         :return: The booking reference of the customer.
         """
-        query = {"field": "name",
-                 "value": customerName}
+        query = {"search": "reference_no",
+                 "id": customerName}
         dir = "/table"
 
-        response = requests.get(self.hostURL + dir, params=query)
+        response = requests.get(self.url + dir, params=query)
+
+#        if response.text == "":
+#            raise NameError("Database could not locate given name.")
 
         return response.text
 
@@ -44,20 +48,13 @@ class ClientTest(unittest.TestCase):
     Unit test class for Customer.
     """
 
-    def setUp(self):
-        """
-        Creates a new Client object prior to each test.
-        """
-        self.serverAddress = 'http://127.0.0.1:8000'
-
     def testFetchBookingRef(self):
         """
         Tests whether the client can fetch the booking reference
         from the server.
         """
-        client = Client(self.serverAddress)
-        self.assertEqual(client.fetchBookingRef("Abd-Allah"),
-                         "ABCD-EFGH-IJKL-MNOP")
+        client = Client()
+        self.assertEqual(client.fetchBookingRef("The Condenser"), "FJ802035DT")
 
 
 class Table:
@@ -146,17 +143,23 @@ class TableTest(unittest.TestCase):
 
     def setUp(self):
         """
-        Initialises a table object prior to each test.
+        Initialises a table object prior to each test using mock objects.
         """
-        woodInfo = ["wood", "main course", "woody...", 123.00]
-        breadInfo = ["bread", "main course", "I am BREAD.", 111.00]
-        cardboardInfo = ["cardboard", "dessert", "Fibericious", 321.00]
-        wood = Food(woodInfo)
-        bread = Food(breadInfo)
-        cardboard = Food(cardboardInfo)
+        woodInfo = ["wood", 123.00]
+        breadInfo = ["bread", 111.00]
+        cardboardInfo = ["cardboard", 321.00]
 
-        foodList = [wood, bread, cardboard]
-        menu = Menu(foodList)
+        foodInfo = [woodInfo, breadInfo, cardboardInfo]
+        foodList = []
+
+        for info in foodInfo:
+            food = MagicMock()
+            food.name = info[0]
+            food.price = info[1]
+            foodList.append(food)
+
+        menu = MagicMock()
+        menu.items = foodList
 
         self.table = Table(10, menu)
 
@@ -203,6 +206,8 @@ class Menu:
 
     def __init__(self, foodItems=None):
         """
+        Constructs the menu and adds food objects into the items field.
+
         :param foodItems: A list (or tuple) of Food objects to be added
                           to the menu.
         """
@@ -214,12 +219,16 @@ class Menu:
 
     def findItem(self, foodName):
         """
+        Attempts to find the given food name on the menu and then returns the
+        food object. If the name cannot be found, then raises a NameError
+        exception.
+
         :param foodName: The name of the food to be searched.
         :return: The Food object being looked up otherwise a NameError.
         """
-        for item in self.items:
-            if item.name == foodName.lower():
-                return item
+        for food in self.items:
+            if food.name == foodName.lower():
+                return food
 
         raise NameError("{} is not on the menu.".format(foodName))
 
@@ -249,13 +258,14 @@ class MenuTest(unittest.TestCase):
 
     def setUp(self):
         """
-        Prepares a menu to be tested against.
+        Prepares a menu to be tested against using mock objects.
         """
-        cardboardInfo = ["cardboard", "dessert", "Fibericious", 42]
-        breadInfo = ["bread", "main course", "I am BREAD.", 666]
+        self.bread = MagicMock()
+        self.cardboard = MagicMock()
 
-        self.cardboard = Food(cardboardInfo)
-        self.bread = Food(breadInfo)
+        self.bread.name = "bread"
+        self.cardboard.name = "cardboard"
+
         foodItems = [self.cardboard, self.bread]
 
         self.menu = Menu(foodItems)
@@ -265,6 +275,7 @@ class MenuTest(unittest.TestCase):
         Tests whether a specified food item can be found on the menu.
         """
         # Items on the menu
+
         self.assertEqual(self.menu.findItem("bread"), self.bread)
         self.assertEqual(self.menu.findItem("cardboard"), self.cardboard)
 
@@ -283,6 +294,8 @@ class MenuSet(set):
         """
         Adds an element into the set but warns the user if the element
         already exists in the set.
+
+        :param element: The element to be added to the set.
         """
         if element in self:
             print("Warning: Overriding an existing element.")
@@ -479,9 +492,15 @@ def testPrintStatements():
     foodItems = [cardboard, bread]
 
     menu = Menu(foodItems)
+    table = Table(7, menu)
+    table.order("bread")
+    table.order("bread")
+    table.order("bread")
 
     # All print statements
 #    menu.print()
+#    table.printAllOrders()
+#    table.printBill()
 
 
 def main():
