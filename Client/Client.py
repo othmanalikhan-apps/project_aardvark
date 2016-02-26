@@ -5,11 +5,12 @@ The client side of the restaurant server-client system
 __docformat__ = 'reStructuredText'
 
 import unittest
-from unittest.mock import MagicMock
 import requests
 
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
-class ClientLogic:
+class Client:
     """
     Responsible for handling customer requests and communicating to the
     server for additional information.
@@ -21,26 +22,36 @@ class ClientLogic:
 
         :param httpURL: The host URL to be communicated to.
         """
-        self.url = httpURL
+        tableToDir = {"table": "/table",
+                      "booking": "/booking",
+                      "order": "/order",
+                      "menu": "/menu"}
 
-    def fetchBookingRef(self, customerName):
+        self.tableToURL = {}
+        for table, dir in tableToDir.items():
+            self.tableToURL[table] = httpURL + dir
+
+    def fetchData(self, table, query=None):
         """
-        Fetches the booking reference number for the provided name
-        from the server.
+        Queries the server to return more data for the given query and table.
 
-        :param customerName: The name of the customer.
-        :return: The booking reference of the customer.
+        :param table: Name of the table to be queried on the server. The name
+        should be in the tableToURL dictionary.
+        :param query: A dictionary of fields that will be used to help search
+        the table.
+        :return: All data available for the given query.
         """
-        query = {"search": "reference_no",
-                 "id": customerName}
-        dir = "/table"
-
-        response = requests.get(self.url + dir, params=query)
-
-#        if response.text == "":
-#            raise NameError("Database could not locate given name.")
-
+        response = requests.get(self.tableToURL[table], params=query)
         return response.text
+
+    def sendData(self, table, data):
+        """
+        Sends data to the server to store in the database.
+
+        :param table: Name of the table where the data will be stored.
+        :param data: A dictionary of fields to be stored in the database.
+        """
+        requests.post(self.tableToURL[table], params=data)
 
 
 class ClientTest(unittest.TestCase):
@@ -48,13 +59,50 @@ class ClientTest(unittest.TestCase):
     Unit test class for Customer.
     """
 
-    def testFetchBookingRef(self):
+    @patch("requests.get")      # Overrides the request.get method
+    def testFetchData(self, requestGetMethod):
         """
-        Tests whether the client can fetch the booking reference
-        from the server.
+        Tests whether the client can fetch data from a mock object
+        representing the server.
         """
+        tableData = {"reference": "FJ802035DT",
+                     "date": "10-10-1000",
+                     "name": "programmer K",
+                     "phone": "01123581321",
+                     "email": "programmerK@gmail.com",
+                     "table number": "99",
+                     "sanity": "-9000"}
+
+        query = {"name": "programmer K"}
+
+        mockResponse = MagicMock()
+        mockResponse.text = tableData
+        requestGetMethod.return_value = mockResponse
+
         client = Client()
-        self.assertEqual(client.fetchBookingRef("The Condenser"), "FJ802035DT")
+        self.assertDictEqual(client.fetchData("booking", query), tableData)
+
+        with self.assertRaises(KeyError):
+            client.fetchData("death list", query)
+
+    @patch("requests.post")      # Overrides the request.post method
+    def testFetchData(self, requestPostMethod):
+        """
+        Tests whether the client can send data to a mock object representing
+        the server.
+        """
+        tableData = {"reference": "FJ802035DT",
+                     "date": "10-10-1000",
+                     "name": "programmer K",
+                     "phone": "01123581321",
+                     "email": "programmerK@gmail.com",
+                     "table number": "99",
+                     "sanity": "-9000"}
+
+        client = Client()
+        client.sendData("order", tableData)
+        url = "http://127.0.0.1:8000/order"
+        requestPostMethod.assert_called_once_with(url, params=tableData)
 
 
 class Table:
