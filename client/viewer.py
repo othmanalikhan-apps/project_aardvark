@@ -4,7 +4,8 @@ Courtesy of Stackoverflow:
 http://stackoverflow.com/questions/19966056/
 pyqt5-how-can-i-connect-a-qpushbutton-to-a-slot
 """
-from client.Client import ClientLogic
+
+from model import Client
 
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, QLabel, QVBoxLayout, QTextEdit
@@ -36,7 +37,7 @@ class Window(QWidget):
         """
         name = self.textArea.toPlainText()
 
-        client = ClientLogic()
+        client = Client()
         bookingRef = client.fetchBookingRef(name)
 
         self.label.setText(bookingRef)
@@ -54,5 +55,6 @@ def main():
 
 
 if __name__ == "__main__":
+    client = Client()
     import sys
     main()

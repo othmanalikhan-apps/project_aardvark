@@ -105,6 +105,101 @@ class ClientTest(unittest.TestCase):
         requestPostMethod.assert_called_once_with(url, params=tableData)
 
 
+class Restaurant:
+    """
+    Represents the restaurant which is the main control system for managing
+    other objects such as tables and a menu and hence dealing with customer
+    requests.
+    """
+
+    def __init__(self, menu, tableAmount):
+        """
+        Initializes a menu and table objects which represent the restaurant's
+        menu and tables.
+        """
+        self.tables = []
+        self.menu = menu
+
+        for i in range(tableAmount):
+            self.tables.append(Table(i, self.menu))
+
+    def findEmptyTable(self):
+        """
+        Finds and returns a list of tables that are currently not being used by
+        any customer.
+        :return: A list of table objects that are available to be used.
+        """
+        availableTables = []
+        for table in self.tables:
+            if(table.isAvailable):
+                availableTables.append(table)
+        return availableTables
+
+
+class RestaurantTest(unittest.TestCase):
+    """
+    Unit test class for Restaurant.
+    """
+
+    @patch("model.Table")
+    def setUp(self, mockTable):
+        """
+        Creates a restaurant object with a mock menu prior to each test.
+        :param mockTable: A mock object of a table.
+        """
+        menu = self.setUpMenu()
+        mockTable.side_effect = self.createMockTable
+        self.restaurant = Restaurant(menu, 50)
+
+    def setUpMenu(self):
+        """
+        Sets up a dummy menu to be used for testing.
+        :return: A mock menu object.
+        """
+        woodInfo = ["wood", 123.00]
+        breadInfo = ["bread", 111.00]
+        cardboardInfo = ["cardboard", 321.00]
+
+        foodInfo = [woodInfo, breadInfo, cardboardInfo]
+        foodList = []
+
+        for info in foodInfo:
+            food = MagicMock()
+            food.name = info[0]
+            food.price = info[1]
+            foodList.append(food)
+
+        menu = MagicMock()
+        menu.items = foodList
+        return menu
+
+    def createMockTable(self, *args, **kwargs):
+        """
+        Creates and returns a mock table.
+        :return: A prepared mock table.
+        """
+        mockTable = MagicMock()
+        mockTable.isAvailable = False
+        return mockTable
+
+    def testFindEmptyTable(self):
+        """
+        Tests whether available table can be found.
+        """
+        tableList = []
+        tableNum = [11, 22, 33]
+
+        # Initialize Empty tables
+        for i, num in enumerate(tableNum):
+            tableList.append(self.restaurant.tables[num])
+            tableList[i].isAvailable = True
+
+        emptyTables = self.restaurant.findEmptyTable()
+
+        for i, empty in enumerate(emptyTables):
+            self.assertEqual(empty, tableList[i])
+
+
 class Table:
     """
     Represents a restaurant table (essentially customer requests).
@@ -119,6 +214,8 @@ class Table:
         """
         self.menu = menu
         self.num = tableNum
+        self.isOccupied = False
+        self.hasOrdered = False
         self.size = None
         self.orderHistory = []
         self.totalPaid = 0.0
@@ -193,6 +290,14 @@ class TableTest(unittest.TestCase):
         """
         Initialises a table object prior to each test using mock objects.
         """
+        menu = self.setUpMenu()
+        self.table = Table(10, menu)
+
+    def setUpMenu(self):
+        """
+        Sets up a dummy menu to be used for testing.
+        :return: A mock menu object.
+        """
         woodInfo = ["wood", 123.00]
         breadInfo = ["bread", 111.00]
         cardboardInfo = ["cardboard", 321.00]
@@ -208,8 +313,7 @@ class TableTest(unittest.TestCase):
 
         menu = MagicMock()
         menu.items = foodList
-
-        self.table = Table(10, menu)
+        return menu
 
     def testOrder(self):
         """
@@ -280,7 +384,7 @@ class Menu:
 
         raise NameError("{} is not on the menu.".format(foodName))
 
-    def print(self):
+    def printMenu(self):
         """
         Prints the restaurant menu.
         """
@@ -313,7 +417,6 @@ class MenuTest(unittest.TestCase):
 
         self.bread.name = "bread"
         self.cardboard.name = "cardboard"
-
         foodItems = [self.cardboard, self.bread]
 
         self.menu = Menu(foodItems)
