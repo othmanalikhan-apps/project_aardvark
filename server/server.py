@@ -63,6 +63,8 @@ class myHandler(http.server.BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+
+
     sys.path.append("../database")
     os.environ["DJANGO_SETTINGS_MODULE"] = "database.settings"
     django.setup()
