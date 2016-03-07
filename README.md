@@ -1,5 +1,6 @@
 # Restaurant Booking And Billing System (Team Aardvark)
 
+
 The project involves the development of a restaurant table booking and billing system. So that would entail designing three main aspects: client, server & database. As of yet, we decided to implement all three aspects using Python.
 
 
