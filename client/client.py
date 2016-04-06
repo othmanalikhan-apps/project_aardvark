@@ -8,6 +8,142 @@ import unittest
 import requests
 
 
+class Table:
+    """
+    Represents a restaurant table (essentially customer requests).
+    """
+
+    def __init__(self, tableNum, menu):
+        """
+        Initializes some fields while delaying others until need be.
+
+        :param tableNum: The number of the table.
+        :param menu: A menu object that represents the restaurant menu.
+        """
+        self.menu = menu
+        self.num = tableNum
+        self.size = None
+        self.orderHistory = []
+        self.totalPaid = 0.0
+
+    def order(self, foodName):
+        """
+        Registers an order into the history.
+
+        To be precise, checks whether the provided food name is part of the
+        menu, if so then pulls the food object from the menu and stores it
+        in the order history field.
+
+        :param foodName: The name of the food object to be ordered.
+        """
+        isInMenu = False
+
+        for food in self.menu.items:
+            if food.name == foodName.lower():
+                self.orderHistory.append(food)
+                isInMenu = True
+
+        if not isInMenu:
+            raise NameError("{} is not part of the menu".format(foodName))
+
+    def computeBill(self):
+        """
+        Calculates the total price of all the food ordered.
+        :return: The total bill for the table.
+        """
+        totalBill = 0
+        for food in self.orderHistory:
+            totalBill += food.price
+        return totalBill
+
+    def payBill(self, payment):
+        """
+        Simulates the payment for the total bill.
+
+        For now, it is simply just storing the supplied argument into the
+        totalPaid field but can be subject to change if need be.
+
+        :param payment: The amount paid by the customer.
+        """
+        self.totalPaid += payment
+
+    def printAllOrders(self):
+        """
+        Prints all the orders requested by the table which are stored in the
+        orderHistory field.
+        """
+        separatorTemplate = "{:#<40}".format("")
+        headerTemplate = "{0:#<16} ORDERS {0:#<16}".format("")
+
+        print(headerTemplate)
+        for food in self.orderHistory:
+            print(food)
+        print(separatorTemplate)
+
+    def printBill(self):
+        """
+        Prints the total bill of all orders from the table.
+        """
+        print("Total Bill: {:.2f} GBP".format(self.computeBill()))
+
+
+class TableTest(unittest.TestCase):
+    """
+    Unit test class for the Table class.
+    """
+
+    def setUp(self):
+        """
+        Initialises a table object prior to each test.
+        """
+        woodInfo = ["wood", "main course", "woody...", 123.00]
+        breadInfo = ["bread", "main course", "I am BREAD.", 111.00]
+        cardboardInfo = ["cardboard", "dessert", "Fibericious", 321.00]
+        wood = Food(woodInfo)
+        bread = Food(breadInfo)
+        cardboard = Food(cardboardInfo)
+
+        foodList = [wood, bread, cardboard]
+        menu = Menu(foodList)
+
+        self.table = Table(10, menu)
+
+    def testOrder(self):
+        """
+        Tests whether the order method registers orders properly.
+        """
+        self.table.order("wood")
+        self.table.order("wood")
+
+        # Orders actually requested
+        self.assertTrue(len(self.table.orderHistory), 2)
+        self.assertTrue(self.table.orderHistory[0].name, "wood")
+
+        # Orders not requested
+        with self.assertRaises(NameError):
+            self.table.order("metal")
+
+    def testComputeBill(self):
+        """
+        Tests whether the bill matches the dollar.
+        """
+        self.table.order("wood")
+        self.table.order("bread")
+        self.table.order("cardboard")
+        self.assertEqual(self.table.computeBill(), 555.00)
+
+    def testPayBill(self):
+        """
+        Tests whether the payBill method properly accumulates payments.
+        """
+        self.table.payBill(10.00)
+        self.table.payBill(10.00)
+        self.table.payBill(20.00)
+        self.table.payBill(30.00)
+        self.table.payBill(50.00)
+        self.assertEqual(self.table.totalPaid, 120.00)
+
+
 class Menu:
     """
     Represents the restaurant menu.
