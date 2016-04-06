@@ -106,6 +106,67 @@ class ClientTest(unittest.TestCase):
         requestPostMethod.assert_called_once_with(url, params=tableData)
 
 
+class Reservation:
+    """
+    Responsible for issuing booking and cancellation requests to the server.
+    """
+
+    def __init__(self):
+        """
+        Initializes a menu and table objects which represent the restaurant's
+        menu and tables.
+        """
+        self.reservationInfo = []
+
+    def reserve(self, isBook, tableNum, timeFrame):
+        """
+        Applies a booking or cancellation of a table.
+
+        :param isBook: Boolean of whether the book or cancel
+        :param tableNum: The table number to be booked.
+        :param timeFrame: Datetime object of the start time of the booking.
+        :return: A dictionary that contains the booking information
+        """
+        d = timeFrame.date()
+        t = timeFrame.time()
+
+        bookingDict = {"table": tableNum,
+                       "book": isBook,
+                       "date": (d.year, d.month, d.day),
+                       "time": (t.hour, t.minute)}
+        return bookingDict
+
+
+class ReservationTest(unittest.TestCase):
+    """
+    Unit test class for Reservation.
+    """
+
+    def setUp(self):
+        """
+        Creates a Reservation object.
+        """
+        self.reservation = Reservation()
+
+    def testReserve(self):
+        """
+        Tests whether the information generated from a booking or cancellation
+        request is correct.
+        """
+        bookingInfo = \
+            self.reservation.reserve(True, 3, datetime(2005, 7, 14, 12, 30))
+
+        self.assertEqual(bookingInfo["table"], 3)
+        self.assertEqual(bookingInfo["date"], (2005, 7, 14))
+        self.assertEqual(bookingInfo["time"], (12, 30))
+        self.assertEqual(bookingInfo["book"], True)
+
+        bookingInfo = \
+            self.reservation.reserve(False, 3, datetime(2005, 7, 14, 12, 30))
+
+        self.assertEqual(bookingInfo["book"], False)
+
+
 class Restaurant:
     """
     Represents the restaurant which is responsible for dealing with customers
