@@ -6,7 +6,7 @@
 __docformat__ = 'reStructuredText'
 
 
-from client.model import (
+from src.client.model import (
     Client, Table, Food, Menu, MenuSet, Reservation, Restaurant
 )
 
@@ -102,7 +102,7 @@ class RestaurantTest(unittest.TestCase):
     Unit test class for Restaurant.
     """
 
-    @patch("client.model.Table")
+    @patch("src.client.model.Table")
     def setUp(self, mockTable):
         """
         Creates a restaurant object with a mock menu prior to each test.

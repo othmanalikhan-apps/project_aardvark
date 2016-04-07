@@ -1,0 +1,9 @@
+## The file responsible for gitlab continuous integration ##
+
+stages:
+  - test
+
+test:
+  stage: test
+  script:
+    - python setup.py test
