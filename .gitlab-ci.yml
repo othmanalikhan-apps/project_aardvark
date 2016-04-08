@@ -1,9 +1,6 @@
 ## The file responsible for gitlab continuous integration ##
 
-before_script:
-  - apt install python3-pip
-  - pip3 install setuptools
-
+image: python:3.4
 
 stages:
   - test
