@@ -1,9 +1,8 @@
 # TODO:
 # Add a run server command class
-# Add the DEC10 commands for installing PyQT + Django
-# Add auto Sphinx autodocumentation
+# Add the DEC10 commands for installing PyQT + Django + Sphinx
 # Report CleanCommand bug that states files are missing when deleting
-# Upgrade CleanCommand to remove all files except the chosen ones
+# Report CleanCommand bug directory is not empty
 
 
 """
@@ -19,6 +18,8 @@ further instructions of use.
 
 import os
 import subprocess
+import shutil
+import webbrowser
 
 import sys
 from sys import platform as _platform
@@ -34,57 +35,6 @@ def readme():
     """
     with open("README.md") as file:
         return file.read()
-
-
-# def generateCommand(command_subclass):
-#     """
-#     A decorator method that returns a standard class template for classes
-#     that inherit from setuptools command class.
-#
-#     Specifically, it overrides the abstract methods required for a setuptools
-#     command class without adding any functionality.
-#     """
-#
-#     orig_run = command_subclass.run
-#     orig_initialize = command_subclass.initialize_options
-#     orig_finalize = command_subclass.finalize_options
-#
-#     def modified_initialize_options(self):
-#         """
-#         Overrides the empty abstract method.
-#
-#         The original method is responsible for setting default values for
-#         all the options that the command supports.
-#
-#         In practice, this is used as a lazy constructor.
-#         """
-# #        orig_initialize(self)
-#         pass
-#
-#     def modified_finalize_options(self):
-#         """
-#         Overrides the empty abstract method.
-#
-#         The original method is responsible for setting and checking the final
-#         values for all the options just before the method run is executed.
-#
-#         In practice, this is where the values are assigned and verified.
-#         """
-# #        orig_finalize(self)
-#         pass
-#
-#     def modified_run(self):
-#        """
-#        Overrides the default run method but doesn't add any additional
-#        functionality yet.
-#        """
-#        orig_run(self)
-#
-#    command_subclass.initialize_options = modified_initialize_options
-#    command_subclass.finalize_options = modified_finalize_options
-#    command_subclass.run = modified_run
-#
-#    return command_subclass
 
 
 class RunClientCommand(Command):
@@ -173,20 +123,81 @@ class CleanCommand(Command):
         """
         Deletes some folders that can be generated (cross-platform).
         """
-        errno = None
+        ignoreDirs = ["src", "test", "doc", ".git", ".idea"]
+        ignoreFiles = [".gitignore", ".gitlab-ci.yml", "README.md", "setup.py"]
 
-        if _platform == "win32":
-            errno = subprocess.call('rmdir /s /q build '
-                                    'team_aardvark_restaurant.egg-info',
-                                    shell=True)
 
-        elif _platform == "linux" or _platform == "linux2":
-            errno = subprocess.call('rm -rf build '
-                                    'team_aardvark_restaurant.egg-info',
-                                    shell=True)
+        deleteDirs = [dir for dir in os.listdir(".")
+                      if dir not in ignoreDirs and os.path.isdir(dir)]
+
+        deleteFiles = [file for file in os.listdir(".")
+                       if file not in ignoreFiles and os.path.isfile(file)]
+
+        for file in deleteFiles:
+            os.remove(file)
+
+        for dir in deleteDirs:
+            shutil.rmtree(dir)
+
+        errno = subprocess.call('cd doc && make clean', shell=True)
+        if errno != 0:
+            raise SystemExit("Unable to clean docs!")
+
+
+class GenerateDocCommand(Command):
+    """
+    A command class to generate the code documentation.
+    """
+    description = "generates project documentation"
+    user_options = []
+
+    def initialize_options(self):
+        """
+        Overriding a required abstract method.
+        """
+        pass
+
+    def finalize_options(self):
+        """
+        Overriding a required abstract method.
+        """
+        pass
+
+    def run(self):
+        """
+        Generates the project documentation.
+        """
+        errno = subprocess.call('cd doc && make clean && make html', shell=True)
 
         if errno != 0:
-            raise SystemExit("Unable to clean the project directory!")
+            raise SystemExit("Unable to generate docs!")
+
+
+class RunDocCommand(Command):
+    """
+    A command class to open the documentation in the default browser.
+    """
+    description = "opens documentation in browser"
+    user_options = []
+
+    def initialize_options(self):
+        """
+        Overriding a required abstract method.
+        """
+        pass
+
+    def finalize_options(self):
+        """
+        Overriding a required abstract method.
+        """
+        pass
+
+    def run(self):
+        """
+        Opens the project documentation in a browser.
+        """
+        relativePath = 'doc/build/html/index.html'
+        webbrowser.open('file://' + os.path.realpath(relativePath))
 
 
 class InstallInVirtualEnv(install):
@@ -221,15 +232,16 @@ setup(
     version='1.0',
     packages=find_packages(),
 
-    install_requires=['requests'],
+    install_requires=['requests', 'Sphinx', 'pdoc'],
     test_suite="tests",
 
     cmdclass={
-        'runInstallation': InstallInVirtualEnv,
+        'runInstall': InstallInVirtualEnv,
         'runClient': RunClientCommand,
         'runTests': PyTestCommand,
         'runClean': CleanCommand,
-
+        'generateDoc': GenerateDocCommand,
+        'runDoc': RunDocCommand,
     },
 
     author='Team Aardvark',
@@ -242,3 +254,54 @@ setup(
         "Topic :: Management :: Restaurant"
     ],
 )
+
+
+# def generateCommand(command_subclass):
+#     """
+#     A decorator method that returns a standard class template for classes
+#     that inherit from setuptools command class.
+#
+#     Specifically, it overrides the abstract methods required for a setuptools
+#     command class without adding any functionality.
+#     """
+#
+#     orig_run = command_subclass.run
+#     orig_initialize = command_subclass.initialize_options
+#     orig_finalize = command_subclass.finalize_options
+#
+#     def modified_initialize_options(self):
+#         """
+#         Overrides the empty abstract method.
+#
+#         The original method is responsible for setting default values for
+#         all the options that the command supports.
+#
+#         In practice, this is used as a lazy constructor.
+#         """
+# #        orig_initialize(self)
+#         pass
+#
+#     def modified_finalize_options(self):
+#         """
+#         Overrides the empty abstract method.
+#
+#         The original method is responsible for setting and checking the final
+#         values for all the options just before the method run is executed.
+#
+#         In practice, this is where the values are assigned and verified.
+#         """
+# #        orig_finalize(self)
+#         pass
+#
+#     def modified_run(self):
+#        """
+#        Overrides the default run method but doesn't add any additional
+#        functionality yet.
+#        """
+#        orig_run(self)
+#
+#    command_subclass.initialize_options = modified_initialize_options
+#    command_subclass.finalize_options = modified_finalize_options
+#    command_subclass.run = modified_run
+#
+#    return command_subclass
