@@ -1,5 +1,9 @@
 ## The file responsible for gitlab continuous integration ##
 
+before_script:
+  - apt-get install python-setuptools
+
+
 stages:
   - test
 
