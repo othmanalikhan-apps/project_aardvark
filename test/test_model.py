@@ -13,6 +13,7 @@ from src.client.model import (
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from unittest.mock import call
 from datetime import datetime
 
 
@@ -21,50 +22,132 @@ class ClientTest(unittest.TestCase):
     Unit test class for Customer.
     """
 
-    @patch("requests.get")      # Overrides the request.get method
-    def testFetchData(self, requestGetMethod):
+    def setUp(self):
         """
-        Tests whether the client can fetch data from a mock object
+        Prepares some mock data for the JSON menu and food, a mock menu,
+        and a mock food object. Also, creates a Client object.
+        """
+        self.foodInfo = ["seaweed",
+                         "breakfast",
+                         "My hopes and dreams...",
+                         11]
+
+        self.JSONFood = \
+        {
+            "name": self.foodInfo[0],
+            "type": self.foodInfo[1],
+            "description": self.foodInfo[2],
+            "price": self.foodInfo[3],
+        }
+
+        self.JSONMenu = {"menu": [self.JSONFood, self.JSONFood]}
+
+        self.client = Client()
+        self.mockMenu = self.setUpMenu()
+        self.mockFood = self.setUpFood()
+
+    def setUpMenu(self):
+        """
+        Sets up a dummy menu to be used for testing.
+        :return: A mock menu object.
+        """
+        woodInfo = ["wood", 123.00]
+        breadInfo = ["bread", 111.00]
+        cardboardInfo = ["cardboard", 321.00]
+
+        foodInfo = [woodInfo, breadInfo, cardboardInfo]
+        foodList = []
+
+        for info in foodInfo:
+            food = MagicMock()
+            food.name = info[0]
+            food.price = info[1]
+            foodList.append(food)
+
+        menu = MagicMock()
+        menu.items = foodList
+        return menu
+
+    def setUpFood(self):
+        """
+        Sets up a dummy food object to be used for testing.
+        :return: A mock food object.
+        """
+        mockFood = MagicMock()
+        mockFood.name = self.JSONFood["name"]
+        mockFood.type = self.JSONFood["type"]
+        mockFood.description = self.JSONFood["description"]
+        mockFood.price = self.JSONFood["price"]
+        return mockFood
+
+    @patch("src.client.model.Client.parseJSONMenu")
+    @patch("src.client.model.Menu")
+    @patch("requests.get")
+    def testRequestMenu(self, mockRequestMethod, mockMenu, mockParse):
+        """
+        Tests whether the client can fetch the menu from a mock object
         representing the server.
         """
-        tableData = {"reference": "FJ802035DT",
-                     "date": "10-10-1000",
-                     "name": "programmer K",
-                     "phone": "01123581321",
-                     "email": "programmerK@gmail.com",
-                     "table number": "99",
-                     "sanity": "-9000"}
+        response = MagicMock()
+        response.text = self.JSONMenu
 
-        query = {"name": "programmer K"}
+        mockRequestMethod.return_value = response
+        mockParse.return_value = [self.mockFood, self.mockFood]
+
+        menuArgs = [call([self.mockFood, self.mockFood])]
+        menu = self.client.requestMenu()
+
+        self.assertEqual(mockMenu.call_args_list, menuArgs)
+
+    @patch("src.client.model.Food")
+    @patch("src.client.model.Client.parseJSONFood")
+    def testParseJSONMenu(self, mockParse, mockFoodClass):
+        """
+        Tests whether data about menu in JSON formatting can be parsed
+        correctly (so that it can later be fed into the Menu constructor).
+        """
+        mockParse.return_value = self.foodInfo
+        mockFoodClass.return_value = self.mockFood
+
+        parseArgs = [call(self.JSONFood), call(self.JSONFood)]
+        foodArgs = [call(self.foodInfo), call(self.foodInfo)]
+
+        foodList = self.client.parseJSONMenu(self.JSONMenu)
+
+        self.assertListEqual(mockParse.call_args_list, parseArgs)
+        self.assertListEqual(mockFoodClass.call_args_list, foodArgs)
+        self.assertListEqual(foodList, [self.mockFood, self.mockFood])
+
+    def testParseJSONFood(self):
+        """
+        Tests whether data about menu in JSON formatting can be parsed
+        correctly (so that it can later be fed into the Food constructor).
+        """
+        foodData = self.client.parseJSONFood(self.JSONFood)
+        self.assertEqual(foodData, self.foodInfo)
+
+    def testConvertFoodToJSON(self):
+        """
+        Tests whether a food object (mocked) can be parsed to JSON
+        formatting correctly.
+        """
+        self.assertDictEqual(self.client.convertFoodToJSON(self.mockFood),
+                             self.JSONFood)
+
+    @patch("requests.post")
+    def testSendMenu(self, requestPostMethod):
+        """
+        Tests whether the client can send the menu to a mock object
+        representing the server.
+        """
 
         mockResponse = MagicMock()
-        mockResponse.text = tableData
-        requestGetMethod.return_value = mockResponse
+        mockResponse.text = self.JSONMenu
+        requestPostMethod.return_value = mockResponse
 
-        client = Client()
-        self.assertDictEqual(client.fetchData("booking", query), tableData)
+        menu = self.setUpMenu()
 
-        with self.assertRaises(KeyError):
-            client.fetchData("death list", query)
-
-    @patch("requests.post")      # Overrides the request.post method
-    def testFetchData(self, requestPostMethod):
-        """
-        Tests whether the client can send data to a mock object representing
-        the server.
-        """
-        tableData = {"reference": "FJ802035DT",
-                     "date": "10-10-1000",
-                     "name": "programmer K",
-                     "phone": "01123581321",
-                     "email": "programmerK@gmail.com",
-                     "table number": "99",
-                     "sanity": "-9000"}
-
-        client = Client()
-        client.sendData("order", tableData)
-        url = "http://127.0.0.1:8000/order"
-        requestPostMethod.assert_called_once_with(url, params=tableData)
+        self.assertDictEqual(self.client.sendMenu(menu).text, self.JSONMenu)
 
 
 class ReservationTest(unittest.TestCase):
@@ -136,7 +219,7 @@ class RestaurantTest(unittest.TestCase):
 
     def createMockTable(self, *args, **kwargs):
         """
-        Creates and returns a mock table.
+        Creates and returns a new modified mock table object per call.
         :return: A prepared mock table.
         """
         mockTable = MagicMock()
@@ -268,6 +351,7 @@ class MenuSetTest(unittest.TestCase):
     Unit test class for the MenuSet class.
     """
 
+    @patch("sys.stdout", None)
     def testAddingItem(self):
         """
         Tests whether the overridden add method behaves similar

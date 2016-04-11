@@ -28,27 +28,75 @@ class Client:
         for table, dir in tableToDir.items():
             self.tableToURL[table] = httpURL + dir
 
-    def fetchData(self, table, query=None):
+    def requestMenu(self):
         """
-        Queries the server to return more data for the given query and table.
+        Requests the menu from the server.
+        :return: An instantiated Menu object.
+        """
+        response = requests.get(self.tableToURL["menu"])
+        parsedData = self.parseJSONMenu(response.text)
+        return Menu(parsedData)
 
-        :param table: Name of the table to be queried on the server. The name
-        should be in the tableToURL dictionary.
-        :param query: A dictionary of fields that will be used to help search
-        the table.
-        :return: All data available for the given query.
+    def parseJSONMenu(self, JSONMenu):
         """
-        response = requests.get(self.tableToURL[table], params=query)
-        return response.text
+        Parses JSON input containing data about the menu to a suitable form
+        that can be directly passed into the Menu constructor.
 
-    def sendData(self, table, data):
+        :param JSONMenu: The JSON text containing data about the menu.
+        :return: A list of Food objects (can be used to construct a Menu
+        object).
         """
-        Sends data to the server to store in the database.
+        foodList = []
 
-        :param table: Name of the table where the data will be stored.
-        :param data: A dictionary of fields to be stored in the database.
+        for foodData in JSONMenu["menu"]:
+            parsedData = self.parseJSONFood(foodData)
+            foodList.append(Food(parsedData))
+
+        return foodList
+
+    def parseJSONFood(self, JSONInput):
         """
-        requests.post(self.tableToURL[table], params=data)
+        Parses JSON input containing data about the food to a suitable form
+        that can be directly passed into the Food constructor.
+
+        :param JSONInput: The JSON text containing data about the food.
+        :return: A list containing food data (can be used to construct a Food
+        object).
+        """
+        foodData = []
+        dataAttributes = ["name", "type", "description", "price"]
+
+        for attribute in dataAttributes:
+            foodData.append(JSONInput[attribute])
+        return foodData
+
+    def convertFoodToJSON(self, food):
+        """
+        Converts a supplied food object into JSON format.
+
+        :param food: A food object.
+        :return: The food object parsed into JSON formatting (dictionary).
+        """
+        JSONFormat = {}
+        JSONFormat["name"] = food.name
+        JSONFormat["type"] = food.type
+        JSONFormat["description"] = food.description
+        JSONFormat["price"] = food.price
+        return JSONFormat
+
+    def sendMenu(self, menu):
+        """
+        Sends the server the menu in JSON form.
+        :return: Response code of the post request.
+        """
+        JSONMenu = {"food": []}
+
+        for food in menu.items:
+            JSONFood = self.convertFoodToJSON(food)
+            JSONMenu["food"].append(JSONFood)
+
+        response = requests.post(self.tableToURL["menu"], data=JSONMenu)
+        return response
 
 
 class Reservation:
@@ -376,3 +424,7 @@ class Food:
 
 if __name__ == "__main__":
     pass
+
+
+### SERVER JSON FORMAT ###
+
