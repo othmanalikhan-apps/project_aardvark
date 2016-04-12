@@ -95,7 +95,7 @@ class PyTestCommand(Command):
         """
         Semantically, runs 'python test/run_tests.py' on the command line.
         """
-        errno = subprocess.call([sys.executable, 'test/run_tests.py'])
+        errno = subprocess.call([sys.executable, 'test/unit/run_tests.py'])
         if errno != 0:
             raise SystemExit("Unable to run tests or some tests failed!")
 
@@ -123,7 +123,7 @@ class CleanCommand(Command):
         """
         Deletes some folders that can be generated (cross-platform).
         """
-        ignoreDirs = ["src", "test", "doc", ".git", ".idea"]
+        ignoreDirs = ["src", "test", "doc", ".git", ".idea", "asset"]
         ignoreFiles = [".gitignore", ".gitlab-ci.yml", "README.md", "setup.py"]
 
 
@@ -232,7 +232,7 @@ setup(
     version='1.0',
     packages=find_packages(),
 
-    install_requires=['requests', 'Sphinx', 'pdoc'],
+    install_requires=['requests', 'Sphinx'],
     test_suite="tests",
 
     cmdclass={
