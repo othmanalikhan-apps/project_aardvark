@@ -1,6 +1,6 @@
-##
-## Unittests for the model module in the client package
-##
+"""
+A set of unit tests for the model module in the src.client package.
+"""
 
 
 __docformat__ = 'reStructuredText'
@@ -24,7 +24,7 @@ class ClientTest(unittest.TestCase):
 
     def setUp(self):
         """
-        Prepares some mock data for the JSON menu and food, a mock menu,
+        Prepares some mock data for the Json menu and food, a mock menu,
         and a mock food object. Also, creates a Client object.
         """
         self.foodInfo = ["seaweed",
@@ -32,7 +32,7 @@ class ClientTest(unittest.TestCase):
                          "My hopes and dreams...",
                          11]
 
-        self.JSONFood = \
+        self.JsonFood = \
         {
             "name": self.foodInfo[0],
             "type": self.foodInfo[1],
@@ -40,47 +40,53 @@ class ClientTest(unittest.TestCase):
             "price": self.foodInfo[3],
         }
 
-        self.JSONMenu = {"menu": [self.JSONFood, self.JSONFood]}
+        self.JsonMenu = {"menu": [self.JsonFood, self.JsonFood]}
 
         self.client = Client()
-        self.mockMenu = self.setUpMenu()
-        self.mockFood = self.setUpFood()
-
-    def setUpMenu(self):
-        """
-        Sets up a dummy menu to be used for testing.
-        :return: A mock menu object.
-        """
-        woodInfo = ["wood", 123.00]
-        breadInfo = ["bread", 111.00]
-        cardboardInfo = ["cardboard", 321.00]
-
-        foodInfo = [woodInfo, breadInfo, cardboardInfo]
-        foodList = []
-
-        for info in foodInfo:
-            food = MagicMock()
-            food.name = info[0]
-            food.price = info[1]
-            foodList.append(food)
-
-        menu = MagicMock()
-        menu.items = foodList
-        return menu
+        self.setUpFood()
+        self.setUpMenu()
 
     def setUpFood(self):
         """
-        Sets up a dummy food object to be used for testing.
-        :return: A mock food object.
+        Sets up a dummy food object.
         """
-        mockFood = MagicMock()
-        mockFood.name = self.JSONFood["name"]
-        mockFood.type = self.JSONFood["type"]
-        mockFood.description = self.JSONFood["description"]
-        mockFood.price = self.JSONFood["price"]
-        return mockFood
+        self.mockFood = MagicMock()
+        self.mockFood.name = self.JsonFood["name"]
+        self.mockFood.type = self.JsonFood["type"]
+        self.mockFood.description = self.JsonFood["description"]
+        self.mockFood.price = self.JsonFood["price"]
 
-    @patch("src.client.model.Client.parseJSONMenu")
+    def setUpMenu(self):
+        """
+        Sets up a dummy menu.
+        """
+        self.wood = MagicMock()
+        self.wood.name = "wood"
+        self.wood.type = "breakfast"
+        self.wood.description = "delicious"
+        self.wood.price = 123.00
+
+        self.bread = MagicMock()
+        self.bread.name = "bread"
+        self.bread.type = "lunch"
+        self.bread.description = "beefy..."
+        self.bread.price = 111.00
+
+        self.cardboard = MagicMock()
+        self.cardboard.name = "cardboard"
+        self.cardboard.type = "dinner"
+        self.cardboard.description = "fiberlicious"
+        self.cardboard.price = 321.00
+
+        self.mockMenu = MagicMock()
+        self.mockMenu.items = [self.wood, self.bread, self.cardboard]
+
+
+
+
+
+
+    @patch("src.client.model.Client.parseJsonMenu")
     @patch("src.client.model.Menu")
     @patch("requests.get")
     def testRequestMenu(self, mockRequestMethod, mockMenu, mockParse):
@@ -89,7 +95,7 @@ class ClientTest(unittest.TestCase):
         representing the server.
         """
         response = MagicMock()
-        response.text = self.JSONMenu
+        response.text = self.JsonMenu
 
         mockRequestMethod.return_value = response
         mockParse.return_value = [self.mockFood, self.mockFood]
@@ -100,39 +106,39 @@ class ClientTest(unittest.TestCase):
         self.assertEqual(mockMenu.call_args_list, menuArgs)
 
     @patch("src.client.model.Food")
-    @patch("src.client.model.Client.parseJSONFood")
-    def testParseJSONMenu(self, mockParse, mockFoodClass):
+    @patch("src.client.model.Client.parseJsonFood")
+    def testParseJsonMenu(self, mockParse, mockFoodClass):
         """
-        Tests whether data about menu in JSON formatting can be parsed
+        Tests whether data about menu in Json formatting can be parsed
         correctly (so that it can later be fed into the Menu constructor).
         """
         mockParse.return_value = self.foodInfo
         mockFoodClass.return_value = self.mockFood
 
-        parseArgs = [call(self.JSONFood), call(self.JSONFood)]
+        parseArgs = [call(self.JsonFood), call(self.JsonFood)]
         foodArgs = [call(self.foodInfo), call(self.foodInfo)]
 
-        foodList = self.client.parseJSONMenu(self.JSONMenu)
+        foodList = self.client.parseJsonMenu(self.JsonMenu)
 
         self.assertListEqual(mockParse.call_args_list, parseArgs)
         self.assertListEqual(mockFoodClass.call_args_list, foodArgs)
         self.assertListEqual(foodList, [self.mockFood, self.mockFood])
 
-    def testParseJSONFood(self):
+    def testParseJsonFood(self):
         """
-        Tests whether data about menu in JSON formatting can be parsed
+        Tests whether data about menu in Json formatting can be parsed
         correctly (so that it can later be fed into the Food constructor).
         """
-        foodData = self.client.parseJSONFood(self.JSONFood)
+        foodData = self.client.parseJsonFood(self.JsonFood)
         self.assertEqual(foodData, self.foodInfo)
 
-    def testConvertFoodToJSON(self):
+    def testConvertFoodToJson(self):
         """
-        Tests whether a food object (mocked) can be parsed to JSON
+        Tests whether a food object (mocked) can be parsed to Json
         formatting correctly.
         """
-        self.assertDictEqual(self.client.convertFoodToJSON(self.mockFood),
-                             self.JSONFood)
+        self.assertDictEqual(self.client.convertFoodToJson(self.mockFood),
+                             self.JsonFood)
 
     @patch("requests.post")
     def testSendMenu(self, requestPostMethod):
@@ -140,14 +146,12 @@ class ClientTest(unittest.TestCase):
         Tests whether the client can send the menu to a mock object
         representing the server.
         """
-
         mockResponse = MagicMock()
-        mockResponse.text = self.JSONMenu
+        mockResponse.text = self.JsonMenu
         requestPostMethod.return_value = mockResponse
 
-        menu = self.setUpMenu()
-
-        self.assertDictEqual(self.client.sendMenu(menu).text, self.JSONMenu)
+        self.assertDictEqual(self.client.sendMenu(self.mockMenu).text,
+                             self.JsonMenu)
 
 
 class ReservationTest(unittest.TestCase):
@@ -413,37 +417,32 @@ class FoodTest(unittest.TestCase):
             Food(stringPrice)
 
 
-def testPrintStatements():
-    """
-    Runs all the print statements across all unit tested classes.
-    This is factored out to avoid spam.
-    """
-    # Initialization
-    cardboardInfo = ["cardboard", "dessert", "Fibericious", 42]
-    breadInfo = ["bread", "main course", "I am BREAD.", 666]
-    cardboard = Food(cardboardInfo)
-    bread = Food(breadInfo)
-    foodItems = [cardboard, bread]
-
-    menu = Menu(foodItems)
-    table = Table(7, menu)
-    table.order("bread")
-    table.order("bread")
-    table.order("bread")
-
-    # All print statements
-#    menu.print()
-#    table.printAllOrders()
-#    table.printBill()
-
-
-def main():
-    """
-    Code is executed through this method.
-    """
-    testPrintStatements()
-
-
-if __name__ == "__main__":
-#    main()
-    unittest.main()
+# def testPrintStatements():
+#     """
+#     Runs all the print statements across all unit tested classes.
+#     This is factored out to avoid spam.
+#     """
+#     # Initialization
+#     cardboardInfo = ["cardboard", "dessert", "Fibericious", 42]
+#     breadInfo = ["bread", "main course", "I am BREAD.", 666]
+#     cardboard = Food(cardboardInfo)
+#     bread = Food(breadInfo)
+#     foodItems = [cardboard, bread]
+#
+#     menu = Menu(foodItems)
+#     table = Table(7, menu)
+#     table.order("bread")
+#     table.order("bread")
+#     table.order("bread")
+#
+#     # All print statements
+#     menu.print()
+#     table.printAllOrders()
+#     table.printBill()
+#
+#
+# def main():
+#    """
+#    Code is executed through this method.
+#    """
+#    testPrintStatements()

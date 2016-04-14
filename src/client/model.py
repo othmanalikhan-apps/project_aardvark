@@ -34,32 +34,32 @@ class Client:
         :return: An instantiated Menu object.
         """
         response = requests.get(self.tableToURL["menu"])
-        parsedData = self.parseJSONMenu(response.text)
+        parsedData = self.parseJsonMenu(response.text)
         return Menu(parsedData)
 
-    def parseJSONMenu(self, JSONMenu):
+    def parseJsonMenu(self, JsonMenu):
         """
-        Parses JSON input containing data about the menu to a suitable form
+        Parses Json input containing data about the menu to a suitable form
         that can be directly passed into the Menu constructor.
 
-        :param JSONMenu: The JSON text containing data about the menu.
+        :param JsonMenu: The Json text containing data about the menu.
         :return: A list of Food objects (can be used to construct a Menu
         object).
         """
         foodList = []
 
-        for foodData in JSONMenu["menu"]:
-            parsedData = self.parseJSONFood(foodData)
+        for foodData in JsonMenu["menu"]:
+            parsedData = self.parseJsonFood(foodData)
             foodList.append(Food(parsedData))
 
         return foodList
 
-    def parseJSONFood(self, JSONInput):
+    def parseJsonFood(self, JsonInput):
         """
-        Parses JSON input containing data about the food to a suitable form
+        Parses Json input containing data about the food to a suitable form
         that can be directly passed into the Food constructor.
 
-        :param JSONInput: The JSON text containing data about the food.
+        :param JsonInput: The Json text containing data about the food.
         :return: A list containing food data (can be used to construct a Food
         object).
         """
@@ -67,35 +67,35 @@ class Client:
         dataAttributes = ["name", "type", "description", "price"]
 
         for attribute in dataAttributes:
-            foodData.append(JSONInput[attribute])
+            foodData.append(JsonInput[attribute])
         return foodData
 
-    def convertFoodToJSON(self, food):
+    def convertFoodToJson(self, food):
         """
-        Converts a supplied food object into JSON format.
+        Converts a supplied food object into Json format.
 
         :param food: A food object.
-        :return: The food object parsed into JSON formatting (dictionary).
+        :return: The food object parsed into Json formatting (dictionary).
         """
-        JSONFormat = {}
-        JSONFormat["name"] = food.name
-        JSONFormat["type"] = food.type
-        JSONFormat["description"] = food.description
-        JSONFormat["price"] = food.price
-        return JSONFormat
+        JsonFormat = {}
+        JsonFormat["name"] = food.name
+        JsonFormat["type"] = food.type
+        JsonFormat["description"] = food.description
+        JsonFormat["price"] = food.price
+        return JsonFormat
 
     def sendMenu(self, menu):
         """
-        Sends the server the menu in JSON form.
+        Sends the server the menu in Json form.
         :return: Response code of the post request.
         """
-        JSONMenu = {"food": []}
+        JsonMenu = {"food": []}
 
         for food in menu.items:
-            JSONFood = self.convertFoodToJSON(food)
-            JSONMenu["food"].append(JSONFood)
+            JsonFood = self.convertFoodToJson(food)
+            JsonMenu["food"].append(JsonFood)
 
-        response = requests.post(self.tableToURL["menu"], data=JSONMenu)
+        response = requests.post(self.tableToURL["menu"], data=JsonMenu)
         return response
 
 
@@ -424,7 +424,4 @@ class Food:
 
 if __name__ == "__main__":
     pass
-
-
-### SERVER JSON FORMAT ###
 

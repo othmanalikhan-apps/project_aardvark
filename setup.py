@@ -1,9 +1,7 @@
 # TODO:
 # Add a run server command class
 # Add the DEC10 commands for installing PyQT + Django + Sphinx
-# Report CleanCommand bug that states files are missing when deleting
-# Report CleanCommand bug directory is not empty
-
+# runClient bug (argument is not being passed to script properly)
 
 """
 A script that allows automated project management (Python's solution to a
@@ -65,9 +63,13 @@ class RunClientCommand(Command):
         Semantically, runs 'python src/client/view.py SERVER_SOCKET' on the
         command line.
         """
-        print(self.socket)
-        errno = subprocess.call([sys.executable,
-                                 'src/client/view.py ' + self.socket])
+        path = os.path.join("src", "client", "view.py")
+
+        if self.socket:
+            errno = subprocess.call([sys.executable, path, self.socket])
+        else:
+            errno = subprocess.call([sys.executable, path])
+
         if errno != 0:
             raise SystemExit("Unable to run client GUI!")
 
@@ -95,7 +97,9 @@ class PyTestCommand(Command):
         """
         Semantically, runs 'python test/run_tests.py' on the command line.
         """
-        errno = subprocess.call([sys.executable, 'test/unit/run_tests.py'])
+        path = os.path.join("test", "unit", "run_tests.py")
+
+        errno = subprocess.call([sys.executable, path])
         if errno != 0:
             raise SystemExit("Unable to run tests or some tests failed!")
 
@@ -124,7 +128,8 @@ class CleanCommand(Command):
         Deletes some folders that can be generated (cross-platform).
         """
         ignoreDirs = ["src", "test", "doc", ".git", ".idea", "asset"]
-        ignoreFiles = [".gitignore", ".gitlab-ci.yml", "README.md", "setup.py"]
+        ignoreFiles = [".gitignore", ".gitlab-ci.yml", "README.md",
+                       "setup.py", "settings.ini"]
 
 
         deleteDirs = [dir for dir in os.listdir(".")
@@ -196,7 +201,7 @@ class RunDocCommand(Command):
         """
         Opens the project documentation in a browser.
         """
-        relativePath = 'doc/build/html/index.html'
+        relativePath = os.path.join("doc", "build", "html", "index.html")
         webbrowser.open('file://' + os.path.realpath(relativePath))
 
 
@@ -217,13 +222,14 @@ class InstallInVirtualEnv(install):
             errno2 = subprocess.call('activate', shell=True)
 
         elif _platform == "linux" or _platform == "linux2":
-            errno2 = subprocess.call('source venv/bin/activate', shell=True)
+            path = os.path.join("venv", "bin", "activate")
+            errno2 = subprocess.call('source ' + path, shell=True)
 
         install.run(self)
 
         if errno1 != 0:
             raise SystemExit("Unable to setup the virtual environment!")
-        if errno1 != 0:
+        if errno2 != 0:
             raise SystemExit("Unable to activate the virtual environment!")
 
 

@@ -1,17 +1,36 @@
 """
-Courtesy of Stackoverflow:
+View module of the MVC pattern of the client GUI.
 
-http://stackoverflow.com/questions/19966056/
-pyqt5-how-can-i-connect-a-qpushbutton-to-a-slot
+As such, this module contains the actual PyQt5 GUI code that the
+client will view.
+
+In summary, the GUI is built from multiple tab widgets which are all then
+added to a single main widget that is displayed.
 """
+from PyQt5.QtCore import Qt
+from PyQt5.uic.properties import QtCore
 
-from model import Client
+__docformat__ = 'reStructuredText'
+
+
+import sys
+import os
+import PyQt5
+import configparser
+
+from src.client.model import Client
 
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QPushButton, QLabel, QVBoxLayout,
     QHBoxLayout, QTextEdit, QTabWidget, QStyleFactory
 )
-from PyQt5.QtGui import ( QFont )
+from PyQt5.QtGui import (
+    QFont
+)
+
+
+
+
 
 class TabOrder(QTabWidget):
     pass
@@ -26,106 +45,120 @@ class TabHelp(QTabWidget):
     pass
 
 
-#TODO: fOOd is a tOOple
+
+
 
 class TabMenu(QTabWidget):
     """
-    The tab widget responsible for the menu section of the GUI.
-    This involves displaying the menu on the screen.
+    Responsible for displaying the menu tab of the GUI.
     """
 
     def __init__(self, menu):
         """
         Constructs the menu tab of the GUI.
-        :param menu: A list containing the information about the
+
+        :param menu: A menu object which contains information about the
         food items available.
         """
         super().__init__()
 
-        self.mainLayout = QVBoxLayout()
-        self.foodLayout = QVBoxLayout()
+        self.mainLayout = QHBoxLayout()
+        self.nameLayout = QVBoxLayout()
+        self.descLayout = QVBoxLayout()
+        self.priceLayout = QVBoxLayout()
 
+        self.menu = menu
+        self.createGUI()
 
-        foodInfo = self.categorizeFood(menu)
-        self.createFoodEntries(foodInfo)
-
-        self.foodLayout.addStretch(1)
-        self.mainLayout.addLayout(self.foodLayout)
+        self.mainLayout.addLayout(self.nameLayout)
+        self.mainLayout.addStretch(1)
+        self.mainLayout.addLayout(self.descLayout)
+        self.mainLayout.addStretch(3)
+        self.mainLayout.addLayout(self.priceLayout)
         self.setLayout(self.mainLayout)
+        self.show()
 
-
-    def categorizeFood(self, menu):
+    @staticmethod
+    def categorizeFood(menu):
         """
         Separates the food into types (e.g. main course, desserts, etc).
-        :return: A dictionary that maps food type to a list containing food
-        information as a tuple. Thus of form form
-        type:[(name, description, price)].
+
+        :param menu: A menu object that contains the food items.
+        :return: A dictionary that maps food type to a food object.
         """
         foodType = {}
 
-        for (name, type, description, price) in menu:
-            foodType[type] = []
-
-        for (name, type, description, price) in menu:
-            foodType[type].append((name, description, price))
+        for food in menu.items:
+            if food.type not in foodType.keys():
+                foodType[food.type] = []
+            foodType[food.type].append(food)
 
         return foodType
 
+    def createGUI(self):
+        """
+        Creates all the GUI components for the food entries in the tab.
+        """
+        foodType = self.categorizeFood(self.menu)
+        typeNames = ["starter", "main course", "dessert", "beverage"]
 
-    def createFoodEntries(self, foodType):
-        """
-        :param foodType: A list containing the information about the
-        food items available.
-        """
-        for type in foodType.keys():
+        for type in typeNames:
             self.createTitle(type)
-            for (name, description, price) in foodType[type]:
-                self.createTextArea(name, description, price)
-#                self.createImageArea(name)
+            pass
+            for food in foodType[type]:
+                self.createFoodPrices(food)
+                self.createFoodDescription(food)
+                self.createFoodNames(food)
 
+    def createFoodNames(self, food):
+        """
+        Creates the food names on the vertical left hand-side of the tab.
+        """
+        font = QFont()
+        font.setBold(True)
+        font.setItalic(True)
 
-    def createTextArea(self, name, description, price):
+        label = QLabel()
+        label.setText(food.name)
+        label.setFont(font)
+
+        self.nameLayout.addWidget(label)
+
+    def createFoodDescription(self, food):
         """
         Creates a text area where the food details will be stored.
         """
-        self.layout = QHBoxLayout()
+        class DescriptionLabel(QLabel):
+            """
+            Inner class for improved GUI scaling (dynamic text wrapping).
+            """
+            def resizeEvent(self, resizeEvent):
+                self.setFixedWidth(self.window().width()*0.5)
 
-        fontName = QFont()
-        fontName.setBold(True)
+        layout = QHBoxLayout()
+        font = QFont()
 
-        fontDescr = QFont()
-        fontName.setItalic(True)
+        label = DescriptionLabel()
+        label.setAlignment(Qt.AlignCenter)
+        label.setText(food.description)
+        label.setFont(font)
+        label.setWordWrap(True)
 
-        priceTemplate = "{:.2f} GBP"
+        layout.addWidget(label)
+        self.descLayout.addLayout(layout)
 
-        labelName = QLabel()
-        labelDescr = QLabel()
-        labelPrice = QLabel()
-
-        labelName.setText(name)
-        labelDescr.setText(description)
-        labelPrice.setText(priceTemplate.format(price))
-
-        labelName.setFont(fontName)
-        labelDescr.setFont(fontDescr)
-        labelDescr.setWordWrap(True)
-
-#        label.setFrameStyle(6)
-
-        self.layout.addWidget(labelName)
-        self.layout.addStretch(1)
-        self.layout.addWidget(labelDescr)
-        self.layout.addStretch(1)
-        self.layout.addWidget(labelPrice)
-        self.foodLayout.addLayout(self.layout)
-        self.foodLayout.addStretch(1)
-
-
-    def createImageArea(self):
+    def createFoodPrices(self, food):
         """
-        Creates an area where the food image will be stored.
+        Creates the prices on the vertical right hand-side of the tab.
         """
-        pass
+        template = "{:.2f} GBP"
+        font = QFont()
+
+        label = QLabel()
+        label.setText(template.format(food.price))
+        label.setFont(font)
+
+        self.priceLayout.addWidget(label)
 
     def createTitle(self, type):
         """
@@ -133,8 +166,11 @@ class TabMenu(QTabWidget):
         """
         font = QFont("Arial", 20, QFont.Bold, False)
 
+        dummyLabel = QLabel()
+        dummyLabel.setFont(font)
+
         label = QLabel()
-        label.setText(type)
+        label.setText(type.title())
         label.setFont(font)
 
         layout = QHBoxLayout()
@@ -142,70 +178,16 @@ class TabMenu(QTabWidget):
         layout.addWidget(label)
         layout.addStretch(1)
 
-        self.foodLayout.addLayout(layout)
-
-
-class Viewer(QWidget):
-
-    def __init__(self):
-        """
-        Constructs the client GUI.
-        """
-        super().__init__()
-
-
-#        client = Client("333")
-#        client.fetchData()
-
-
-
-        self.createTabs()
-
-        self.tabs.addTab(self.tabMenu, "Menu")
-        self.tabs.addTab(self.tabOrder, "Order")
-        self.tabs.addTab(self.tabBook, "Booking")
-        self.tabs.addTab(self.tabPay, "Payment")
-        self.tabs.addTab(self.tabHelp, "Help")
-        self.tabs.show()
+        self.nameLayout.addWidget(dummyLabel)
+        self.descLayout.addLayout(layout)
+        self.priceLayout.addWidget(dummyLabel)
 
 
 
 
-    def createTabs(self):
-        """
-        Creates tabs.
-        """
-        self.tabs = QTabWidget()
-        self.tabs.resize(640, 480)
-        self.tabs.setWindowTitle("Team Aardvark")
-
-        self.tabs.setTabPosition(2)
 
 
-        descr1 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " \
-                 "Duis sit amet tempus enim. Sed scelerisque risus vitae dolor " \
-                 "sodales viverra. Nam suscipit leo vel dolor semper, ut " \
-                 "faucibus libero porttitor. Sed ut egestas leo. Phasellus " \
-                 "in sollicitudin quam. Nullam sollicitudin posuere mauris " \
-                 "et facilisis."
 
-        descr2 = "Liquidify... My hopes and dreams... And let it but rot " \
-                 "away... For I, have but hesitated... When travelling down " \
-                 "the " \
-                 "road... That diverges beyond the yellow horizon..."
-
-        menu = {("Seaweed", "Breakfast", descr1, 10),
-                ("Cabbage", "Breakfast", descr1, 10),
-                ("Seaweed", "Breakfast", descr1, 10),
-                ("Potato", "Lunch", descr1, 4),
-                ("Apple", "Brunch", descr1, 4)}
-
-
-        self.tabOrder = TabOrder()
-        self.tabMenu = TabMenu(menu)
-        self.tabBook = TabBook()
-        self.tabPay = TabPay()
-        self.tabHelp = TabHelp()
 
 
     def createButtons(self):
@@ -233,22 +215,108 @@ class Viewer(QWidget):
         self.label.setText(bookingRef)
 
 
+
+
+
+
+
+
+
+
+
+
+
+class View(QWidget):
+    """
+    View class of the MVC pattern. Responsible for displaying the GUI.
+    """
+
+    def __init__(self, serverSocket):
+        """
+        Main Widget that constructs the client GUI.
+        """
+        super().__init__()
+        self.client = Client(serverSocket)
+
+        self.createTabs()
+        self.tabs.addTab(self.tabMenu, "Menu")
+        self.tabs.addTab(self.tabOrder, "Order")
+        self.tabs.addTab(self.tabBook, "Booking")
+        self.tabs.addTab(self.tabPay, "Payment")
+        self.tabs.addTab(self.tabHelp, "Help")
+        self.tabs.show()
+
+    def createTabs(self):
+        """
+        Creates tabs.
+        """
+        self.tabs = QTabWidget()
+        self.tabs.resize(640, 480)
+        self.tabs.setWindowTitle("Team Aardvark")
+        self.tabs.setTabPosition(2)
+
+        menu = self.client.requestMenu()
+
+        self.tabOrder = TabOrder()
+        self.tabMenu = TabMenu(menu)
+        self.tabBook = TabBook()
+        self.tabPay = TabPay()
+        self.tabHelp = TabHelp()
+
+
+def fixPluginBug():
+    """
+    Points PyQt to a .dll file that fixes the 'windows' missing plugin bug.
+    """
+    dirname = os.path.dirname(PyQt5.__file__)
+    plugin_path = os.path.join(dirname, 'plugins', 'platforms')
+    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+
+def getStyle():
+    """
+    Attempts to return a preferred style. If not available, returns a default
+    os style.
+    :return: A style.
+    """
+    prefStyle = ["Windows"]
+    defaultStyle = QStyleFactory.keys()[0]
+
+    prefStyle = [style for style in prefStyle if style in QStyleFactory.keys()]
+    prefStyle.append(defaultStyle)
+
+    return prefStyle[0]
+
+def getSocket():
+    """
+    Gets the server socket from the .ini file.
+    :return: The server socket in string format.
+    """
+    path = os.path.join("..", "..", "settings.ini")
+    if not os.path.exists(path):
+        raise FileNotFoundError("Could not find the settings.ini file!")
+
+    config = configparser.ConfigParser()
+    config.read(path)
+    return config.get("Network", "serversocket")
+
 def main():
     """
-    Runs the GUI.
+    Sets up the GUI style, configures and then runs it.
     """
-    app = QApplication(sys.argv)
-    app.setStyle(QStyleFactory.create("Windows"))
-#    print(QStyleFactory.keys())
-    window = Viewer()
+    try:
+        fixPluginBug()
 
-    sys.exit(app.exec_())
+        app = QApplication(sys.argv)
+        app.setStyle(QStyleFactory.create(getStyle()))
+
+        window = View(getSocket())
+        sys.exit(app.exec_())
+    except SystemExit:
+        print("Exiting Application!")
 
 
 if __name__ == "__main__":
+    pass
 
-    import sys
-
-    main()
-
-
+#http://stackoverflow.com/questions/19966056/
+#pyqt5-how-can-i-connect-a-qpushbutton-to-a-slot
