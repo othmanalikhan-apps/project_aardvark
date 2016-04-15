@@ -13,21 +13,18 @@ from PyQt5.uic.properties import QtCore
 __docformat__ = 'reStructuredText'
 
 
-import sys
 import os
-import PyQt5
 import configparser
 
 from src.client.model import Client
 
 from PyQt5.QtWidgets import (
-    QApplication, QWidget, QPushButton, QLabel, QVBoxLayout,
+    QWidget, QPushButton, QLabel, QVBoxLayout,
     QHBoxLayout, QTextEdit, QTabWidget, QStyleFactory
 )
 from PyQt5.QtGui import (
     QFont
 )
-
 
 
 
@@ -43,6 +40,16 @@ class TabPay(QTabWidget):
 
 class TabHelp(QTabWidget):
     pass
+
+class SplashScreen():
+    pass
+
+
+
+
+
+
+
 
 
 
@@ -215,17 +222,6 @@ class TabMenu(QTabWidget):
         self.label.setText(bookingRef)
 
 
-
-
-
-
-
-
-
-
-
-
-
 class View(QWidget):
     """
     View class of the MVC pattern. Responsible for displaying the GUI.
@@ -244,7 +240,6 @@ class View(QWidget):
         self.tabs.addTab(self.tabBook, "Booking")
         self.tabs.addTab(self.tabPay, "Payment")
         self.tabs.addTab(self.tabHelp, "Help")
-        self.tabs.show()
 
     def createTabs(self):
         """
@@ -263,14 +258,6 @@ class View(QWidget):
         self.tabPay = TabPay()
         self.tabHelp = TabHelp()
 
-
-def fixPluginBug():
-    """
-    Points PyQt to a .dll file that fixes the 'windows' missing plugin bug.
-    """
-    dirname = os.path.dirname(PyQt5.__file__)
-    plugin_path = os.path.join(dirname, 'plugins', 'platforms')
-    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
 def getStyle():
     """
@@ -299,24 +286,4 @@ def getSocket():
     config.read(path)
     return config.get("Network", "serversocket")
 
-def main():
-    """
-    Sets up the GUI style, configures and then runs it.
-    """
-    try:
-        fixPluginBug()
 
-        app = QApplication(sys.argv)
-        app.setStyle(QStyleFactory.create(getStyle()))
-
-        window = View(getSocket())
-        sys.exit(app.exec_())
-    except SystemExit:
-        print("Exiting Application!")
-
-
-if __name__ == "__main__":
-    pass
-
-#http://stackoverflow.com/questions/19966056/
-#pyqt5-how-can-i-connect-a-qpushbutton-to-a-slot

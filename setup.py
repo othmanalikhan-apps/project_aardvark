@@ -41,16 +41,13 @@ class RunClientCommand(Command):
     """
     description = "runs client gui"
     # The format is (long option, short option, description).
-    user_options = [
-        ('socket=', None, 'The socket of the server to connect (e.g. '
-                          '127.0.0.1:8000'),
-    ]
+    user_options = []
 
     def initialize_options(self):
         """
-        Sets the default value for the server socket.
+        Overriding a required abstract method.
         """
-        self.socket = '127.0.0.1:8000'
+        pass
 
     def finalize_options(self):
         """
@@ -60,15 +57,12 @@ class RunClientCommand(Command):
 
     def run(self):
         """
-        Semantically, runs 'python src/client/view.py SERVER_SOCKET' on the
+        Semantically, runs 'python src/client/controller.py' on the
         command line.
         """
-        path = os.path.join("src", "client", "view.py")
+        path = os.path.join("src", "client", "controller.py")
 
-        if self.socket:
-            errno = subprocess.call([sys.executable, path, self.socket])
-        else:
-            errno = subprocess.call([sys.executable, path])
+        errno = subprocess.call([sys.executable, path, self.socket])
 
         if errno != 0:
             raise SystemExit("Unable to run client GUI!")
@@ -97,7 +91,7 @@ class PyTestCommand(Command):
         """
         Semantically, runs 'python test/run_tests.py' on the command line.
         """
-        path = os.path.join("test", "unit", "run_tests.py")
+        path = os.path.join("test", "run_tests.py")
 
         errno = subprocess.call([sys.executable, path])
         if errno != 0:
@@ -129,7 +123,7 @@ class CleanCommand(Command):
         """
         ignoreDirs = ["src", "test", "doc", ".git", ".idea", "asset"]
         ignoreFiles = [".gitignore", ".gitlab-ci.yml", "README.md",
-                       "setup.py", "settings.ini"]
+                       "setup.py", "settings.ini", "pytest.ini"]
 
 
         deleteDirs = [dir for dir in os.listdir(".")

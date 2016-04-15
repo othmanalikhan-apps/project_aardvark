@@ -9,7 +9,7 @@ __docformat__ = 'reStructuredText'
 import unittest
 import csv
 
-from src.client.view import main
+from src.client.controller import main
 from unittest.mock import MagicMock, patch
 
 
