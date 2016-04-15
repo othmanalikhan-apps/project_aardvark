@@ -7,7 +7,8 @@ __docformat__ = 'reStructuredText'
 
 
 from src.client.model import (
-    Client, Table, Food, Menu, MenuSet, Reservation, Restaurant
+    Client, Table, Food, Menu, MenuSet,
+    Reservation, Restaurant
 )
 
 import unittest
@@ -80,11 +81,6 @@ class ClientTest(unittest.TestCase):
 
         self.mockMenu = MagicMock()
         self.mockMenu.items = [self.wood, self.bread, self.cardboard]
-
-
-
-
-
 
     @patch("src.client.model.Client.parseJsonMenu")
     @patch("src.client.model.Menu")
@@ -325,16 +321,42 @@ class MenuTest(unittest.TestCase):
 
     def setUp(self):
         """
-        Prepares a menu to be tested against using mock objects.
+        Constructs a TabMenu object
         """
+        self.setUpFood()
+        self.menu = Menu([self.wood, self.bread, self.cardboard])
+
+    def setUpFood(self):
+        """
+        Sets up some mock food objects.
+        """
+        self.wood = MagicMock()
+        self.wood.name = "wood"
+        self.wood.type = "breakfast"
+        self.wood.description = "delicious"
+        self.wood.price = 123.00
+
         self.bread = MagicMock()
-        self.cardboard = MagicMock()
-
         self.bread.name = "bread"
-        self.cardboard.name = "cardboard"
-        foodItems = [self.cardboard, self.bread]
+        self.bread.type = "breakfast"
+        self.bread.description = "delicious"
+        self.bread.price = 321.00
 
-        self.menu = Menu(foodItems)
+        self.cardboard = MagicMock()
+        self.cardboard.name = "cardboard"
+        self.cardboard.type = "lunch"
+        self.cardboard.description = "delicious"
+        self.cardboard.price = 111.00
+
+    def testCategorizeFood(self):
+        """
+        Tests whether the food items on the menu can be sorted based on
+        their types.
+        """
+        foodType = {"breakfast": [self.bread, self.wood],
+                    "lunch": [self.cardboard]}
+
+        self.assertDictEqual(self.menu.categorizeFood(), foodType)
 
     def testFindItem(self):
         """

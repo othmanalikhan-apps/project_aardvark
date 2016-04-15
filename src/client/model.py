@@ -292,6 +292,22 @@ class Menu:
         # Prints the footer
         print(separatorTemplate)
 
+    def categorizeFood(menu):
+        """
+        Separates the food into types (e.g. main course, desserts, etc).
+
+        :param menu: A menu object that contains the food items.
+        :return: A dictionary that maps food type to a food object.
+        """
+        foodType = {}
+
+        for food in menu.items:
+            if food.type not in foodType.keys():
+                foodType[food.type] = []
+            foodType[food.type].append(food)
+
+        return foodType
+
 
 class MenuSet(set):
     """
