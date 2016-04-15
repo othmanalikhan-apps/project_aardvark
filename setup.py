@@ -51,18 +51,17 @@ class RunClientCommand(Command):
 
     def finalize_options(self):
         """
-        Overriding a required abstract method.
         """
         pass
 
     def run(self):
         """
-        Semantically, runs 'python src/client/controller.py' on the
+        Semantically, runs 'python src/client/view.py SERVER_SOCKET' on the
         command line.
         """
         path = os.path.join("src", "client", "controller.py")
 
-        errno = subprocess.call([sys.executable, path, self.socket])
+        errno = subprocess.call([sys.executable, path])
 
         if errno != 0:
             raise SystemExit("Unable to run client GUI!")

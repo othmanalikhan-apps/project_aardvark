@@ -2,15 +2,17 @@
 A set of unit tests for the view module in the src.client package.
 """
 
-
 __docformat__ = 'reStructuredText'
 
 
+
 import unittest
+import pytest
 
 from io import StringIO
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
+pytest.importorskip("PyQt5")
 from src.client.view import (
     getStyle, getSocket
 )
@@ -50,5 +52,3 @@ class ViewTest(unittest.TestCase):
 
 
 
-if __name__ == "__main__":
-    unittest.main()

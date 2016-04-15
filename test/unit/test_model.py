@@ -353,10 +353,14 @@ class MenuTest(unittest.TestCase):
         Tests whether the food items on the menu can be sorted based on
         their types.
         """
-        foodType = {"breakfast": [self.bread, self.wood],
+        foodType = {"breakfast": [self.wood, self.bread],
                     "lunch": [self.cardboard]}
 
-        self.assertDictEqual(self.menu.categorizeFood(), foodType)
+        sortedType = self.menu.categorizeFood()
+
+        self.assertTrue(self.wood in sortedType["breakfast"])
+        self.assertTrue(self.bread in sortedType["breakfast"])
+        self.assertFalse(self.cardboard in sortedType["breakfast"])
 
     def testFindItem(self):
         """

@@ -292,7 +292,7 @@ class Menu:
         # Prints the footer
         print(separatorTemplate)
 
-    def categorizeFood(menu):
+    def categorizeFood(self):
         """
         Separates the food into types (e.g. main course, desserts, etc).
 
@@ -301,7 +301,7 @@ class Menu:
         """
         foodType = {}
 
-        for food in menu.items:
+        for food in self.items:
             if food.type not in foodType.keys():
                 foodType[food.type] = []
             foodType[food.type].append(food)
