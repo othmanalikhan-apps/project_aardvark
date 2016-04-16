@@ -2,6 +2,7 @@
 # Add a run server command class
 # Add the DEC10 commands for installing PyQT + Django + Sphinx
 # runClient bug (argument is not being passed to script properly)
+# GUI misalignment bug of description
 
 """
 A script that allows automated project management (Python's solution to a
@@ -56,7 +57,7 @@ class RunClientCommand(Command):
 
     def run(self):
         """
-        Semantically, runs 'python src/client/view.py SERVER_SOCKET' on the
+        Semantically, runs 'python src/client/mainTab.py SERVER_SOCKET' on the
         command line.
         """
         path = os.path.join("src", "client", "controller.py")
@@ -71,7 +72,7 @@ class PyTestCommand(Command):
     """
     A command class to run tests.
     """
-    description = "runs all tests"
+    description = "runs all automatic tests"
     user_options = []
 
     def initialize_options(self):
@@ -95,6 +96,37 @@ class PyTestCommand(Command):
         errno = subprocess.call([sys.executable, path])
         if errno != 0:
             raise SystemExit("Unable to run tests or some tests failed!")
+
+
+class ManualTestCommand(Command):
+    """
+    A command class to run semi-manual tests.
+    """
+    description = "runs all manual tests"
+    user_options = []
+
+    def initialize_options(self):
+        """
+        Overriding a required abstract method.
+        """
+        pass
+
+    def finalize_options(self):
+        """
+        Overriding a required abstract method.
+        """
+        pass
+
+    def run(self):
+        """
+        Semantically, runs 'python test/manual/gui_test.py' on the
+        command line.
+        """
+        path = os.path.join("test", "manual", "gui_test.py")
+
+        errno = subprocess.call([sys.executable, path])
+        if errno != 0:
+            raise SystemExit("Unable to run manual test!")
 
 
 class CleanCommand(Command):
@@ -238,6 +270,7 @@ setup(
         'runInstall': InstallInVirtualEnv,
         'runClient': RunClientCommand,
         'runTests': PyTestCommand,
+        'runManualTests': ManualTestCommand,
         'runClean': CleanCommand,
         'generateDoc': GenerateDocCommand,
         'runDoc': RunDocCommand,

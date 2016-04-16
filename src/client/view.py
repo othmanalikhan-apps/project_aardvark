@@ -4,29 +4,26 @@ View module of the MVC pattern of the client GUI.
 As such, this module contains the actual PyQt5 GUI code that the
 client will view.
 
-In summary, the GUI is built from multiple tab widgets which are all then
-added to a single main widget that is displayed.
+In summary, the GUI is more or less built from multiple tab widgets which
+are all then added to a single main widget that is displayed.
 """
-from PyQt5.QtCore import Qt
-from PyQt5.uic.properties import QtCore
 
 __docformat__ = 'reStructuredText'
-
 
 import os
 import configparser
 
-from src.client.model import Client
-
 from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QVBoxLayout,
-    QHBoxLayout, QTextEdit, QTabWidget, QStyleFactory
-)
+    QHBoxLayout, QTextEdit, QTabWidget, QStyleFactory,
+    QStackedWidget, QMainWindow, QScrollArea)
 from PyQt5.QtGui import (
-    QFont
+    QFont,
+    QPixmap)
+from PyQt5.QtCore import (
+    Qt
 )
-
-
+from src.client.model import Client
 
 
 class TabOrder(QTabWidget):
@@ -38,21 +35,89 @@ class TabBook(QTabWidget):
 class TabPay(QTabWidget):
     pass
 
+
+
+
 class TabHelp(QTabWidget):
+
     pass
 
-class SplashScreen():
-    pass
 
 
 
 
 
+class SplashScreen(QWidget):
+    """
+    A simple splash/starting screen
+    """
 
+    def __init__(self):
+        """
+        Loads an image, constructs a title and a button.
+        """
+        super().__init__()
+        self.setWindowTitle("Team Aardvark")
+        self.setFixedSize(300, 600)
+        self.mainLayout = QVBoxLayout()
 
+        self.mainLayout.addStretch(1)
+        self.loadImage()
+        self.createTitle()
+        self.createNextButton()
+        self.mainLayout.addStretch(1)
 
+        self.setLayout(self.mainLayout)
 
+    def loadImage(self):
+        """
+        Loads and displays the startup image.
+        """
+        path = _getRelativePath('..', '..', 'asset', 'logo.png')
+        pixMap = QPixmap(path)
+        pixMap = pixMap.scaled(500, 500, Qt.KeepAspectRatio)
+        image = QLabel()
+        image.setPixmap(pixMap)
+        self.mainLayout.addWidget(image)
 
+    def createTitle(self):
+        """
+        Creates a title label to be displayed on the splash screen.
+        """
+        titleFont = QFont("", 30, QFont.Bold, False)
+        subtitleFont = QFont("", 8, QFont.Bold, False)
+        titleLayout = QHBoxLayout()
+        subtitleLayout = QHBoxLayout()
+
+        title = QLabel()
+        title.setText("Team Aardvark")
+        title.setFont(titleFont)
+
+        subtitle = QLabel()
+        subtitle.setText("Serving With Hospitality")
+        subtitle.setFont(subtitleFont)
+
+        titleLayout.addStretch(1)
+        titleLayout.addWidget(title)
+        titleLayout.addStretch(1)
+
+        subtitleLayout.addStretch(1)
+        subtitleLayout.addWidget(subtitle)
+        subtitleLayout.addStretch(1)
+
+        self.mainLayout.addLayout(titleLayout)
+        self.mainLayout.addLayout(subtitleLayout)
+
+    def createNextButton(self):
+        """
+        Creates the next button to proceed to the next screen.
+        """
+        font = QFont("", 6, QFont.Bold, True)
+
+        self.nextButton = QPushButton("Continue")
+        self.nextButton.setFont(font)
+        self.mainLayout.addStretch(1)
+        self.mainLayout.addWidget(self.nextButton)
 
 
 class TabMenu(QTabWidget):
@@ -83,18 +148,18 @@ class TabMenu(QTabWidget):
         self.mainLayout.addStretch(3)
         self.mainLayout.addLayout(self.priceLayout)
         self.setLayout(self.mainLayout)
-        self.show()
 
     def createGUI(self):
         """
         Creates all the GUI components for the food entries in the tab.
         """
-        foodType = categorizeFood(self.menu)
+        foodType = self.menu.categorizeFood()
+
         typeNames = ["starter", "main course", "dessert", "beverage"]
+
 
         for type in typeNames:
             self.createTitle(type)
-            pass
             for food in foodType[type]:
                 self.createFoodPrices(food)
                 self.createFoodDescription(food)
@@ -155,9 +220,12 @@ class TabMenu(QTabWidget):
         Creates a title for each type of food (e.g. starter, desserts, etc).
         """
         font = QFont("Arial", 20, QFont.Bold, False)
+        dummyFont = QFont("Arial", 12, QFont.Bold, False)
 
-        dummyLabel = QLabel()
-        dummyLabel.setFont(font)
+        dummyLabelA = QLabel()
+        dummyLabelA.setFont(dummyFont)
+        dummyLabelB = QLabel()
+        dummyLabelB.setFont(dummyFont)
 
         label = QLabel()
         label.setText(type.title())
@@ -168,9 +236,9 @@ class TabMenu(QTabWidget):
         layout.addWidget(label)
         layout.addStretch(1)
 
-        self.nameLayout.addWidget(dummyLabel)
+        self.nameLayout.addWidget(dummyLabelA)
         self.descLayout.addLayout(layout)
-        self.priceLayout.addWidget(dummyLabel)
+        self.priceLayout.addWidget(dummyLabelB)
 
 
 
@@ -205,16 +273,21 @@ class TabMenu(QTabWidget):
         self.label.setText(bookingRef)
 
 
-class View(QWidget):
+class MainTab(QTabWidget):
     """
     View class of the MVC pattern. Responsible for displaying the GUI.
     """
 
     def __init__(self, serverSocket):
         """
-        Main Widget that constructs the client GUI.
+        Main tab widget that constructs the client GUI.
         """
         super().__init__()
+        self.setWindowTitle("Team Aardvark")
+        self.setMinimumSize(1024, 600)
+        self.mainLayout = QHBoxLayout()
+        self.scrollArea = QScrollArea()
+
         self.client = Client(serverSocket)
 
         self.createTabs()
@@ -224,23 +297,23 @@ class View(QWidget):
         self.tabs.addTab(self.tabPay, "Payment")
         self.tabs.addTab(self.tabHelp, "Help")
 
+        self.scrollArea.setWidget(self.tabs)
+        self.scrollArea.setWidgetResizable(True)
+        self.mainLayout.addWidget(self.scrollArea)
+        self.setLayout(self.mainLayout)
+
     def createTabs(self):
         """
         Creates tabs.
         """
         self.tabs = QTabWidget()
-        self.tabs.resize(640, 480)
-        self.tabs.setWindowTitle("Team Aardvark")
         self.tabs.setTabPosition(2)
 
-        menu = self.client.requestMenu()
-
         self.tabOrder = TabOrder()
-        self.tabMenu = TabMenu(menu)
+        self.tabMenu = TabMenu(self.client.requestMenu())
         self.tabBook = TabBook()
         self.tabPay = TabPay()
         self.tabHelp = TabHelp()
-
 
 
 def getStyle():
@@ -262,7 +335,8 @@ def getSocket():
     Gets the server socket from the .ini file.
     :return: The server socket in string format.
     """
-    path = os.path.join("..", "..", "settings.ini")
+    path = _getRelativePath('..', '..', 'settings.ini')
+
     if not os.path.exists(path):
         raise FileNotFoundError("Could not find the settings.ini file!")
 
@@ -270,4 +344,13 @@ def getSocket():
     config.read(path)
     return config.get("Network", "serversocket")
 
+def _getRelativePath(*args):
+    """
+    Gets the relative path to a file.
+    (Cross-platform and cross-script compatible)
 
+    :param *args: The relative path to the desired file from the script that
+    calls this function (comma separated).
+    :return: The absolute path to the desired file.
+    """
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), *args))

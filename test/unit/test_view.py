@@ -20,7 +20,7 @@ from src.client.view import (
 
 class ViewTest(unittest.TestCase):
     """
-    Unittests for the standalone functions in the view module.
+    Unittests for the standalone functions in the mainTab module.
     """
 
     def testGetStyle(self):

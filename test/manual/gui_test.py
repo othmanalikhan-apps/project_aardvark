@@ -1,7 +1,7 @@
 """
 A simple functional test for the client GUI with mock data.
 """
-
+import os
 
 __docformat__ = 'reStructuredText'
 
@@ -9,7 +9,8 @@ __docformat__ = 'reStructuredText'
 import unittest
 import csv
 
-from src.client.controller import main
+from src.client.controller import Controller
+from src.client.model import Menu
 from unittest.mock import MagicMock, patch
 
 
@@ -24,18 +25,13 @@ class GUITest(unittest.TestCase):
 
     def setUp(self):
         """
-        Constructs a TabMenu object
+        Sets up a menu using mock data from a prepared csv file.
         """
-        self.setUpMenu()
+        items = []
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "mock_menu.csv")
 
-    def setUpMenu(self):
-        """
-        Sets up a dummy menu using mock data from a prepared csv file.
-        """
-        self.menu = MagicMock()
-        self.menu.items = []
-
-        with open("mock_menu.csv") as csvFile:
+        with open(path) as csvFile:
             reader = csv.reader(csvFile, delimiter=";")
             for foodRow in reader:
                 if foodRow:
@@ -44,7 +40,9 @@ class GUITest(unittest.TestCase):
                     mockFood.type = foodRow[1].strip()
                     mockFood.description = foodRow[2].strip()
                     mockFood.price = float(foodRow[3].strip())
-                    self.menu.items.append(mockFood)
+                    items.append(mockFood)
+
+        self.menu = Menu(items)
 
     @patch("src.client.model.Client.requestMenu")
     def testGUI(self, mockRequest):
@@ -52,7 +50,7 @@ class GUITest(unittest.TestCase):
         Tests whether the GUI can be ran.
         """
         mockRequest.return_value = self.menu
-        main()
+        Controller()
 
 
 if __name__ == "__main__":

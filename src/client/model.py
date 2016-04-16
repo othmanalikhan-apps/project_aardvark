@@ -295,8 +295,6 @@ class Menu:
     def categorizeFood(self):
         """
         Separates the food into types (e.g. main course, desserts, etc).
-
-        :param menu: A menu object that contains the food items.
         :return: A dictionary that maps food type to a food object.
         """
         foodType = {}
