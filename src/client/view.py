@@ -38,13 +38,74 @@ class TabPay(QTabWidget):
 
 
 
+
+
+
 class TabHelp(QTabWidget):
+    """
+    Responsible for displaying the help tab of the GUI.
+    """
 
-    pass
+    def __init__(self):
+        """
+        Constructs the help tab of the GUI.
+        """
+        super().__init__()
+        self.mainLayout = QVBoxLayout()
+        self.setLayout(self.mainLayout)
 
+        self.initializeSectionData()
+        self.createAllSections()
 
+    def initializeSectionData(self):
+        """
+        Creates a list of list which contains text for each section.
+        """
+        self.section = [
+            ["Quick Guide", "MENU TAB: Displays the restaurant menu\n\n"
+                            "ORDER TAB: Allows taking an order for a table\n\n"
+                            "Booking TAB: Allows booking for a customer\n\n"
+                            "PAYMENT TAB: Takes the payment of a customer\n\n"
+                            "HELP TAB:  Displays some basic information"],
+            ["About Us", "Team Aardvark is a group of Aardvarks that are "
+                         "soon to undergo metamorphosis. Perhaps someday "
+                         "we will be able to surpass the creature that "
+                         "is also known as man. But for now, we wait "
+                         "patiently until time is due."],
+            ["Contact Us", "Email: ProgrammerK@gmail.com\n"
+                           "Phone Number: 07472440699\n"
+                           "Address: Team Aardvark, 20 Springfield, "
+                           "Leeds, LS2 9NG, United Kingdom."],
+            ["Legal", "WE ARE NOT RESPONSIBLE FOR ANY DAMAGE INCURRED BY THE "
+                      "USE OF OUR PRODUCT NOR SHALL WE HOLD ANY LIABILITY. "
+                      "ALL USE OF THE PRODUCT IS STRICTLY THE SOLE "
+                      "RESPONSIBILITY OF THE USER.\n"
+                      "REVERSE ENGINEERING AND MODIFICATION OF CODE IS ALLOWED"
+                      " AS ALL THE CODE INVOLVED IN THE PROJECT IS CONSIDERED"
+                      " OPEN SOURCE."]
+            ]
 
+    def createAllSections(self):
+        """
+        Creates the all sections which consists of a title and a paragraph.
+        """
+        self.titleFont = QFont("Arial", 20, QFont.Bold, False)
+        self.descriptionFont = QFont("Arial", 10, QFont.Normal, False)
 
+        for [section, description] in self.section:
+            title = QLabel(section)
+            title.setFont(self.titleFont)
+            description = QLabel(description)
+            description.setFont(self.descriptionFont)
+            description.setWordWrap(True)
+
+            layout = QVBoxLayout()
+            layout.addStretch(1)
+            layout.addWidget(title)
+            layout.addWidget(description)
+            layout.addStretch(1)
+
+            self.mainLayout.addLayout(layout)
 
 
 class SplashScreen(QWidget):
@@ -154,9 +215,7 @@ class TabMenu(QTabWidget):
         Creates all the GUI components for the food entries in the tab.
         """
         foodType = self.menu.categorizeFood()
-
         typeNames = ["starter", "main course", "dessert", "beverage"]
-
 
         for type in typeNames:
             self.createTitle(type)

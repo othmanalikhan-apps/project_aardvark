@@ -3,6 +3,7 @@
 # Add the DEC10 commands for installing PyQT + Django + Sphinx
 # runClient bug (argument is not being passed to script properly)
 # GUI misalignment bug of description
+# Add list of manual tests to GUI tests
 
 """
 A script that allows automated project management (Python's solution to a
