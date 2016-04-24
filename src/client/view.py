@@ -35,61 +35,63 @@ class BookingView(QTabWidget):
 
 
 
-class PaymentView(QTabWidget):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class PaymentView(QStackedWidget, QObject):
     """
-    Responsible for displaying the payment tab of the GUI.
+    Responsible for displaying the payment tab.
     """
 
-    def __init__(self):
+    def __init__(self, tables):
         """
-        Constructs the payment tab of the GUI.
+        Constructs the payment tab.
         """
         super().__init__()
-        self.mainLayout = QVBoxLayout()
-        self.mainWidget = QStackedWidget()
+        # First widget where all tables are displayed.
+        self.tableScreen = TableScreen(tables)
+        self.tableScroll = QScrollArea()
+        self.tableScroll.setWidget(self.tableScreen)
+        self.tableScroll.setWidgetResizable(True)
+        self.addWidget(self.tableScroll)
 
-        tableScreen = TableScreen(255)
-        self.paymentScreen = PaymentScreen(11)
+        # Second widget where payment information for a particular
+        # table is displayed
+        self.paymentScreen = PaymentScreen()
+        self.addWidget(self.paymentScreen)
 
-        self.tableScrollScreen = QScrollArea()
-        self.tableScrollScreen.setWidget(tableScreen)
-        self.tableScrollScreen.setWidgetResizable(True)
+        # Set the table screen as the default
+        self.setCurrentWidget(self.tableScroll)
 
-        self.mainWidget.addWidget(self.tableScrollScreen)
-        self.mainWidget.addWidget(self.paymentScreen)
-
-#        self.mainWidget.setCurrentWidget(self.tableScrollScreen)
-        self.mainWidget.setCurrentWidget(self.paymentScreen)
-
-        self.mainLayout.addWidget(self.mainWidget)
-        self.setLayout(self.mainLayout)
-
-
-    def createTableScreen(self):
+    def displayTableScreen(self):
         """
-        Creates the all sections which consists of a title and a paragraph.
+        Sets the current widget to the table screen.
         """
-        self.titleFont = QFont("Arial", 20, QFont.Bold, False)
-        self.descriptionFont = QFont("Arial", 10, QFont.Normal, False)
+        self.setCurrentWidget(self.tableScroll)
 
-        for [section, description] in self.section:
-            title = QLabel(section)
-            title.setFont(self.titleFont)
-            description = QLabel(description)
-            description.setFont(self.descriptionFont)
-            description.setWordWrap(True)
-
-            layout = QVBoxLayout()
-            layout.addStretch(1)
-            layout.addWidget(title)
-            layout.addWidget(description)
-            layout.addStretch(1)
-
-            self.mainLayout.addLayout(layout)
-
-
-
-
+    def displayPaymentScreen(self, tableNumber):
+        """
+        Sets the current widget to the payment screen.
+        """
+        self.setCurrentWidget(self.paymentScreen)
+        self.paymentScreen.setTableNumber(tableNumber)
 
 
 class PaymentScreen(QWidget, QObject):
@@ -123,6 +125,7 @@ class PaymentScreen(QWidget, QObject):
         # Create calculation group and add it to main layout
         calculationsLayout = self.createCalculationsLayout()
         mainLayout.addLayout(calculationsLayout)
+        mainLayout.addSpacing(20)
 
         # Create print receipt button and add it to main layout
         self.printButton = self.createPrintButton()
@@ -297,6 +300,7 @@ class TableScreen(QWidget, QObject):
         # Create title and add it to layout
         title = self.createTitle("Choose Table:")
         mainLayout.addWidget(title)
+        mainLayout.addSpacing(20)
         mainLayout.addStretch(1)
 
         # Calculate total rows required for all buttons
@@ -582,7 +586,7 @@ class MainView(QMainWindow):
     View class of the MVC pattern. Responsible for displaying the GUI.
     """
 
-    def __init__(self, menu):
+    def __init__(self, menu, totalTables):
         """
         Main tab widget that constructs the client GUI.
         """
@@ -601,7 +605,7 @@ class MainView(QMainWindow):
 #        self.tabOrder = OrderView(menu)
         self.tabMenu = MenuView(menu)
         self.tabBook = BookingView()
-#        self.tabPayment = PaymentView()
+        self.tabPayment = PaymentView(totalTables)
         self.tabHelp = HelpView()
 
         # Wrap menu, help and book tabs in scroll widgets to allow scrolling
@@ -626,7 +630,7 @@ class MainView(QMainWindow):
         self.tabs.addTab(self.menuScroll, "Menu")
 #        self.tabs.addTab(self.tabOrder, "Order")
         self.tabs.addTab(self.bookScroll, "Booking")
-#        self.tabs.addTab(self.tabPayment, "Payment")
+        self.tabs.addTab(self.tabPayment, "Payment")
         self.tabs.addTab(self.helpScroll, "Help")
 
         self.centralWidget().addWidget(self.splash)

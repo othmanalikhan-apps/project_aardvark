@@ -35,7 +35,8 @@ class MainController():
         self.app = QApplication(sys.argv)
         self.client = Client(self.getServerSocket())
         self.menu = self.client.requestMenu()
-        self.window = MainView(self.menu)
+#        self.totalTables = self.client.requestTotalTables()
+        self.window = MainView(self.menu, 200)
 
         self.initialiseSettings()
         self.initialiseViewControllers()
@@ -51,14 +52,10 @@ class MainController():
         """
         Initialises the controller for each of the views
         """
-        self.splashViewController = \
-            SplashViewController(self.window.splash, self.window)
-#        self.paymentViewController = \
-#            PaymentViewController(self.window.tabPayment)
-#        self.orderViewController = \
-#            OrderViewController(self.window.tabOrder)
-#        self.bookingViewController = \
-#            BookingViewController(self.window.tabBook)
+        self.splashViewController = SplashViewController(self.window.splash, self.window)
+        self.paymentViewController = PaymentViewController(self.window.tabPayment)
+#        self.orderViewController = OrderViewController(self.window.tabOrder)
+#        self.bookingViewController = BookingViewController(self.window.tabBook)
 
     def getApplicationStyle(self):
         """
@@ -120,6 +117,41 @@ class SplashViewController:
         """
         self.mainWindow.displayTabs()
 
+
+class PaymentViewController:
+    """
+    Controller for the Payment View widget.
+    """
+
+    def __init__(self, paymentView):
+        """
+        Constructor that mainly connects buttons to handlers.
+        """
+        self.paymentView = paymentView
+        self.paymentView.tableScreen.clickedTableButton.connect(self.handleTableButtonClick)
+        self.paymentView.paymentScreen.clickedBackButton.connect(self.handleBackButtonClick)
+        self.paymentView.paymentScreen.clickedPayButton.connect(self.handlePayButtonClick)
+        self.paymentView.paymentScreen.clickedPrintButton.connect(self.handlePrintButtonClick)
+
+    def handlePrintButtonClick(self):
+        print("You've clicked the print button")
+
+    def handlePayButtonClick(self):
+        print("You've clicked the pay button")
+
+    def handleBackButtonClick(self):
+        """
+        Event handler for that switches the current displayed widget to the
+        table screen.
+        """
+        self.paymentView.displayTableScreen()
+
+    def handleTableButtonClick(self, tableNumber):
+        """
+        Event handler that switches the current displayed widget to the
+        payment screen.
+        """
+        self.paymentView.displayPaymentScreen(tableNumber)
 
 
 def _getRelativePath(*args):
