@@ -1,15 +1,14 @@
 """
 A simple functional test for the client GUI with mock data.
 """
-import os
 
 __docformat__ = 'reStructuredText'
 
-
+import os
 import unittest
 import csv
 
-from src.client.controller import Controller
+from src.client.controller import MainController
 from src.client.model import Menu
 from unittest.mock import MagicMock, patch
 
@@ -50,7 +49,7 @@ class GUITest(unittest.TestCase):
         Tests whether the GUI can be ran.
         """
         mockRequest.return_value = self.menu
-        Controller()
+        MainController()
 
 
 if __name__ == "__main__":

@@ -37,6 +37,29 @@ class Client:
         parsedData = self.parseJsonMenu(response.text)
         return Menu(parsedData)
 
+    def requestTotalTables(self):
+        """
+        Requests the total number of tables in the restaurant from the server.
+        :return: The total number of tables.
+        """
+        query = {"search": "total_number"}
+        response = requests.get(self.tableToURL["table"], params=query)
+        return response
+
+    def sendMenu(self, menu):
+        """
+        Sends the server the menu in Json form.
+        :return: Response code of the post request.
+        """
+        JsonMenu = {"food": []}
+
+        for food in menu.items:
+            JsonFood = self.convertFoodToJson(food)
+            JsonMenu["food"].append(JsonFood)
+
+        response = requests.post(self.tableToURL["menu"], data=JsonMenu)
+        return response
+
     def parseJsonMenu(self, JsonMenu):
         """
         Parses Json input containing data about the menu to a suitable form
@@ -83,20 +106,6 @@ class Client:
         JsonFormat["description"] = food.description
         JsonFormat["price"] = food.price
         return JsonFormat
-
-    def sendMenu(self, menu):
-        """
-        Sends the server the menu in Json form.
-        :return: Response code of the post request.
-        """
-        JsonMenu = {"food": []}
-
-        for food in menu.items:
-            JsonFood = self.convertFoodToJson(food)
-            JsonMenu["food"].append(JsonFood)
-
-        response = requests.post(self.tableToURL["menu"], data=JsonMenu)
-        return response
 
 
 class Reservation:
