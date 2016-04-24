@@ -257,94 +257,82 @@ class PaymentScreen(QWidget):
 
 
 
-class TableScreen(QWidget):
+
+
+
+
+
+
+
+
+
+
+
+
+
+class TableScreen(QWidget, QObject):
     """
-    Screen that displays table numbers to be selected.
+    Screen that displays the payment calculations options.
     """
+    clickedTableButton = pyqtSignal(int)
 
     def __init__(self, totalTables):
         """
-        Constructs a button for each table in a grid like fashion.
+        Table Screen that is displayed within the PaymentView widget
         """
         super().__init__()
-        self.totalTables = totalTables
-        self.mainLayout = QVBoxLayout()
+        mainLayout = QVBoxLayout()
+        self.setLayout(mainLayout)
 
-        self.createTitle()
-        self.createButtons()
-        self.setLayout(self.mainLayout)
+        # Create title and add it to layout
+        title = self.createTitle("Choose Table:")
+        mainLayout.addWidget(title)
+        mainLayout.addStretch(1)
 
-    def createButtons(self):
-        """
-        Creates the all sections which consists of a title and a paragraph.
-        """
-        font = QFont("", 14, QFont.Normal, True)
-        buttonsLayout = QVBoxLayout()
-
-        tableNum = 0
+        # Calculate total rows required for all buttons
         tablesPerRow = 10
-        remainder = self.totalTables % tablesPerRow
+        remainder = totalTables % tablesPerRow
+        totalRows = totalTables // tablesPerRow
 
-        if remainder == 0:
-            totalRows = self.totalTables // tablesPerRow
-        else:
-            totalRows = (self.totalTables // tablesPerRow) + 1
+        # Add extra tables to complete row
+        if remainder != 0:
+            totalRows += 1
 
+        # Create table buttons numbered from 1 to totalTables
+        tableNumber = 0
         for row in range(totalRows):
             rowLayout = QHBoxLayout()
             rowLayout.addStretch(1)
-            for col in range(1, tablesPerRow+1):
-                tableNum += 1
-                button = QPushButton(str(tableNum))
-                button.setFixedSize(50, 50)
-                button.setFont(font)
-                button.clicked.connect(self.handleButton(button))
-
-                rowLayout.addWidget(button)
+            for col in range(1, tablesPerRow + 1):
+                tableNumber += 1
+                tableButton = self.createTableButton(tableNumber)
+                rowLayout.addWidget(tableButton)
                 rowLayout.addStretch(1)
+            rowLayout.addStretch(1)
+            mainLayout.addLayout(rowLayout)
 
-            buttonsLayout.addLayout(rowLayout)
-            buttonsLayout.addStretch(1)
-
-
-        self.mainLayout.addLayout(buttonsLayout)
-
-    def handleButton(self, button):
+    def createTitle(self, text):
         """
-        The button handler for each button.
-        :return: The table number of the button.
+        Creates a title with the given text.
+        :return: The title as a QLabel.
         """
-        def printButtonText():
-#            print(button.text())
-            self.chosenOne = button.text()
+        title = QLabel(text)
+        title.setFont(QFont("", 20, QFont.Bold, False))
+        return title
 
-        return printButtonText
-
-    def createTitle(self):
+    def createTableButton(self, tableNumber):
         """
-        Creates a title label for the tab.
+        Creates a 50x50 square button with the table number as the text
+        :return: The QPushButton with the table number on it.
         """
-        font = QFont("", 20, QFont.Bold, False)
-        layout = QHBoxLayout()
-
-        title = QLabel()
-        title.setText("Choose Table:")
-        title.setFont(font)
-
-        layout.addWidget(title)
-        layout.addStretch(1)
-        self.mainLayout.addLayout(layout)
-        self.mainLayout.addSpacing(20)
-
-
-
-
-
-
-
-
-
-
+        button = QPushButton(str(tableNumber))
+        button.setFixedSize(50, 50)
+        button.setFont(QFont("", 14, QFont.Normal, True))
+        # Emit a signal when the button is pressed with the button's
+        # text as the argument
+        button.clicked.connect(lambda isClicked, tableNumber=button.text():
+                               self.clickedTableButton.emit(int(tableNumber)))
+        return button
 
 
 class MenuView(QWidget):
