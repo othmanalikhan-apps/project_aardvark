@@ -27,9 +27,6 @@ from PyQt5.QtCore import (
 from src.client.model import Client
 
 
-class OrderView(QTabWidget):
-    pass
-
 class BookingView(QTabWidget):
     pass
 
@@ -52,7 +49,154 @@ class BookingView(QTabWidget):
 
 
 
+class OrderScreen(QWidget, QObject):
+    """
+    Displays all the items on the menu that can be ordered as buttons.
+    Clicking on an item adds it to the ordered items section.
+    """
+    clickedFoodButton = pyqtSignal(str)
+    clickedSubmitButton = pyqtSignal(str)
 
+    def __init__(self,menu):
+        """
+        Constructs the order screen which consists of titles of the food
+        types, followed by buttons representing the food.
+        Also, the end of the screen contains food items queued into the
+        order basket.
+        """
+        super().__init__()
+        mainLayout = QVBoxLayout()
+        mainLayout.setAlignment(Qt.AlignCenter)
+        self.setLayout(mainLayout)
+
+        # Get the food types and create a title for each type
+        # Then create an entry for each of the foods within the food type
+        foodType = menu.categorizeFood()
+        typeNames = ["starter", "main course", "dessert", "beverage"]
+
+        for type in typeNames:
+            # Create a title for each food type
+            titleLayout = self.createTitleLayout(type.title())
+            mainLayout.addLayout(titleLayout)
+
+            # Group food buttons in rows
+            rowLayout = QHBoxLayout()
+            for food in foodType[type]:
+                foodButton = self.createFoodButton(food.name)
+                rowLayout.addWidget(foodButton)
+
+            # Add row to main layout
+            mainLayout.addLayout(rowLayout)
+
+        # Ordered items section
+        orderedItemsTitleLayout = self.createTitleLayout("Ordered Items")
+        mainLayout.addLayout(orderedItemsTitleLayout)
+
+        # Submit order button
+        submitButtonLayout = self.createSubmitButtonLayout()
+        mainLayout.addLayout(submitButtonLayout)
+
+    def displayOrderedItems(self, orderedItems):
+        """
+        Updates the ordered items section displaying their quantity
+        and description.
+        :param orderedItems: A list containing the names of the food items
+        ordered.
+        """
+        # Remove all items from previous display
+        self.clearLayout(self.orderedItemsLayout)
+
+        for itemName in orderedItems:
+            # Create label to display the quantity
+            layout = QHBoxLayout()
+            quantityLabel = QLabel()
+            quantityLabel.setText("3x")
+            quantityLabel.setMaximumWidth(20)
+            quantityFont = QFont("", 10, QFont.Bold, True)
+            quantityLabel.setFont(quantityFont)
+            layout.addWidget(quantityLabel)
+
+            layout.addSpacing(10)
+
+            # Create label to display the name
+            nameLabel = QLabel()
+            nameLabel.setText(itemName)
+            nameFont = QFont("", 10, QFont.StyleItalic, True)
+            nameLabel.setFont(nameFont)
+            layout.addWidget(nameLabel)
+
+            # Add the combined labels layout to the orderItemsLayout
+            self.orderedItemsLayout.addLayout(layout)
+
+        self.mainLayout.insertLayout(self.mainLayout.count()-1,
+                                     self.orderedItemsLayout)
+
+    def createFoodButton(self, text):
+        """
+        Create a label on top of a button so that we can have multi-line text
+        on a button. By default, QPushButton displays text on a single line.
+        :param: The text string to be displayed on the button.
+        :return: The food button.
+        """
+        button = QPushButton()
+        button.setFixedSize(100, 100)
+        button.setLayout(QVBoxLayout())
+
+        label = QLabel(button)
+        label.setText(text)
+        label.setAlignment(Qt.AlignCenter)
+        label.setMouseTracking(False)
+        label.setWordWrap(True)
+        label.setTextInteractionFlags(Qt.NoTextInteraction)
+
+        button.layout().addWidget(label)
+
+        # Emit a signal when the button is pressed with the button's text as
+        # the argument
+        button.clicked.connect(lambda isClicked, foodName=label.text():
+                               self.clickedFoodButton.emit(foodName))
+        return button
+
+    def createSubmitButtonLayout(self):
+        """
+        Creates the submit button and it's layout.
+        :return: The layout of the submit button.
+        """
+        button = QPushButton("Submit Order")
+        button.setMaximumWidth(200)
+        button.setMinimumHeight(50)
+        button.clicked.connect(lambda isClicked: self.clickedSubmitButton.emit())
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addSpacing(20)
+        layout.addWidget(button)
+        return layout
+
+    def createTitleLayout(self, text):
+        """
+        Creates a title for each type of food (e.g. starter, desserts, etc).
+        :param text: The string text of the title.
+        """
+        title = QLabel(text)
+        title.setFont(QFont("Arial", 20, QFont.Bold, False))
+        title.setAlignment(Qt.AlignCenter)
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+        return layout
+
+    def clearLayout(self, layout):
+        """
+        Clears all the widgets within a layout.
+        """
+        if layout is not None:
+            while layout.count():
+                item = layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    widget.deleteLater()
+                else:
+                    self.clearLayout(item.layout())
 
 
 class PaymentView(QStackedWidget, QObject):
