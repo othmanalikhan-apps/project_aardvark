@@ -4,8 +4,6 @@ A set of unit tests for the view module in the src.client package.
 
 __docformat__ = 'reStructuredText'
 
-
-
 import unittest
 import pytest
 

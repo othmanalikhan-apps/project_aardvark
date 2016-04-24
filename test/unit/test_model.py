@@ -1,21 +1,21 @@
 """
-A set of unit tests for the model module in the src.client package.
+A set of unit tests for the model module in the client package.
 """
-
+import os
 
 __docformat__ = 'reStructuredText'
-
-
-from src.client.model import (
-    Client, Table, Food, Menu, MenuSet,
-    Reservation, Restaurant
-)
 
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from unittest.mock import call
 from datetime import datetime
+
+from .. import env
+from client.model import (
+    Client, Table, Food, Menu, MenuSet,
+    Reservation, Restaurant
+)
 
 
 class ClientTest(unittest.TestCase):
@@ -82,8 +82,8 @@ class ClientTest(unittest.TestCase):
         self.mockMenu = MagicMock()
         self.mockMenu.items = [self.wood, self.bread, self.cardboard]
 
-    @patch("src.client.model.Client.parseJsonMenu")
-    @patch("src.client.model.Menu")
+    @patch("client.model.Client.parseJsonMenu")
+    @patch("client.model.Menu")
     @patch("requests.get")
     def testRequestMenu(self, mockRequestMethod, mockMenu, mockParse):
         """
@@ -101,8 +101,8 @@ class ClientTest(unittest.TestCase):
 
         self.assertEqual(mockMenu.call_args_list, menuArgs)
 
-    @patch("src.client.model.Food")
-    @patch("src.client.model.Client.parseJsonFood")
+    @patch("client.model.Food")
+    @patch("client.model.Client.parseJsonFood")
     def testParseJsonMenu(self, mockParse, mockFoodClass):
         """
         Tests whether data about menu in Json formatting can be parsed
@@ -185,7 +185,7 @@ class RestaurantTest(unittest.TestCase):
     Unit test class for Restaurant.
     """
 
-    @patch("src.client.model.Table")
+    @patch("client.model.Table")
     def setUp(self, mockTable):
         """
         Creates a restaurant object with a mock menu prior to each test.

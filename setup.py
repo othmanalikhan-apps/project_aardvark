@@ -26,6 +26,7 @@ from sys import platform as _platform
 
 from setuptools import setup, find_packages, Command
 from setuptools.command.install import install
+from setuptools.command.test import test
 
 
 def readme():
@@ -35,7 +36,6 @@ def readme():
     """
     with open("README.md") as file:
         return file.read()
-
 
 class RunClientCommand(Command):
     """
@@ -61,15 +61,15 @@ class RunClientCommand(Command):
         Semantically, runs 'python src/client/mainTab.py SERVER_SOCKET' on the
         command line.
         """
+        loadPaths()
         path = os.path.join("src", "client", "controller.py")
 
         errno = subprocess.call([sys.executable, path])
-
         if errno != 0:
             raise SystemExit("Unable to run client GUI!")
 
 
-class PyTestCommand(Command):
+class PyTestCommand(test):
     """
     A command class to run tests.
     """
@@ -92,14 +92,22 @@ class PyTestCommand(Command):
         """
         Semantically, runs 'python test/run_tests.py' on the command line.
         """
-        path = os.path.join("test", "run_tests.py")
+        clientTestFile = os.path.join(os.getcwd(), "test", "run_tests.py")
+        serverTestFile = os.path.join(os.getcwd(), "src", "server", "manage.py")
 
-        errno = subprocess.call([sys.executable, path])
-        if errno != 0:
-            raise SystemExit("Unable to run tests or some tests failed!")
+        print("Starting Client Tests:")
+        errno1 = subprocess.call([sys.executable, clientTestFile])
+        if errno1 != 0:
+            raise SystemExit("Unable to run client tests or they failed!")
+
+        print("\n\nStarting Server Tests:")
+        errno2 = subprocess.call([sys.executable, serverTestFile, "test"],
+                                 cwd=os.path.dirname(serverTestFile))
+        if errno2 != 0:
+            raise SystemExit("Unable to run server tests or they failed!")
 
 
-class ManualTestCommand(Command):
+class ManualTestCommand(test):
     """
     A command class to run semi-manual tests.
     """
@@ -264,8 +272,7 @@ setup(
     version='1.0',
     packages=find_packages(),
 
-    install_requires=['requests', 'Sphinx'],
-    test_suite="tests",
+    install_requires=['requests', 'Sphinx', 'django'],
 
     cmdclass={
         'runInstall': InstallInVirtualEnv,
