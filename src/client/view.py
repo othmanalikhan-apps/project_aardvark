@@ -65,9 +65,6 @@ class PaymentView(QTabWidget):
         self.setLayout(self.mainLayout)
 
 
-
-
-
     def createTableScreen(self):
         """
         Creates the all sections which consists of a title and a paragraph.
@@ -94,180 +91,193 @@ class PaymentView(QTabWidget):
 
 
 
-class PaymentScreen(QWidget):
+
+class PaymentScreen(QWidget, QObject):
     """
     Screen that displays the payment calculations options.
     """
+    clickedBackButton = pyqtSignal()
+    clickedPayButton = pyqtSignal()
+    clickedPrintButton = pyqtSignal()
 
-    def __init__(self, tableNumber):
+    def __init__(self):
         """
         Constructs the GUI for the payment screen.
         """
         super().__init__()
-        self.mainLayout = QVBoxLayout()
+        mainLayout = QVBoxLayout()
+        mainLayout.setAlignment(Qt.AlignCenter)
+        self.setLayout(mainLayout)
 
-        self.leftLayout = QVBoxLayout()
-        self.rightLayout = QVBoxLayout()
-        self.topLayout = QHBoxLayout()
-        self.bottomLayout = QVBoxLayout()
+        mainLayout.addStretch(1)
 
-        self.createTitleGUI(tableNumber)
-        self.createSendGUI()
-        self.createCalculationsGUI()
-        self.createReceiptButtonGUI()
-        self.createBackButtonGUI()
+        # Create title and add it to main layout
+        self.title = self.createTitle()
+        mainLayout.addWidget(self.title)
+        mainLayout.addSpacing(20)
 
-        self.topLayout.addLayout(self.leftLayout)
-        self.topLayout.addLayout(self.rightLayout)
+        # Create payment group and add it to main layout
+        paymentLayout = self.createPaymentLayout()
+        mainLayout.addLayout(paymentLayout)
 
-        self.mainLayout.addLayout(self.topLayout)
-        self.mainLayout.addLayout(self.bottomLayout)
-        self.setLayout(self.mainLayout)
+        # Create calculation group and add it to main layout
+        calculationsLayout = self.createCalculationsLayout()
+        mainLayout.addLayout(calculationsLayout)
 
-    def createTitleGUI(self, tableNumber):
+        # Create print receipt button and add it to main layout
+        self.printButton = self.createPrintButton()
+        printButtonLayout = QHBoxLayout()
+        printButtonLayout.addWidget(self.printButton)
+        mainLayout.addLayout(printButtonLayout)
+
+        # Create back button and add it to main layout
+        self.backButton = self.createBackButton()
+        backButtonLayout = QHBoxLayout()
+        backButtonLayout.addWidget(self.backButton)
+        mainLayout.addLayout(backButtonLayout)
+
+        mainLayout.addStretch(2)
+
+    def createCalculationsLayout(self):
         """
-        Creates a title label for the tab.
+        Creates the layout where payment calculations occur.
+        Namely, total bill, amount to pay, amount remaining, and change left
+        fields are created.
+        :return: The calculations layout.
         """
-        font = QFont("", 20, QFont.Bold, False)
-        layout = QHBoxLayout()
+        calculationsLayout = QVBoxLayout()
+        self.totalField = InputField("Total:", "00.00")
+        self.paidField = InputField("Paid:", "00.00")
+        self.remainingField = InputField("Remaining:", "00.00")
+        self.changeField = InputField("Change:", "00.00")
+        calculationsLayout.addLayout(self.totalField.mainLayout)
+        calculationsLayout.addLayout(self.paidField.mainLayout)
+        calculationsLayout.addLayout(self.remainingField.mainLayout)
+        calculationsLayout.addLayout(self.changeField.mainLayout)
+        calculationsLayout.addStretch(1)
+        return calculationsLayout
 
-        title = QLabel()
-        title.setText("Payment: Table {}".format(tableNumber))
-        title.setFont(font)
-
-        layout.addWidget(title)
-        self.leftLayout.addLayout(layout)
-
-    def createSendGUI(self):
+    def createPaymentLayout(self):
         """
-        Creates the section responsible for sending the payment.
+        Creates the layout where payment is sent.
+        Namely, creates an input field to enter payment along with a button
+        to send the payment.
+        :return: The payment layout.
         """
-        labelFont = QFont("", 10, QFont.Normal, False)
-        editFont = QFont("", 8, QFont.Bold, False)
-        buttonFont = QFont("", 8, QFont.Bold, True)
-        layout = QHBoxLayout()
+        paymentLayout = QHBoxLayout()
+        self.paymentField = InputField(" ", "00.00")
+        self.payButton = self.createPayButton()
+        paymentLayout.addStretch(2)
+        paymentLayout.addLayout(self.paymentField.mainLayout)
+        paymentLayout.addWidget(self.payButton)
+        paymentLayout.addStretch(1)
+        return paymentLayout
 
-        sendLabel = QLabel("Payment To Send:")
-        sendLabel.setFont(labelFont)
-
-        sendEdit = QLineEdit("00.00")
-        sendEdit.setFont(editFont)
-
-        sendButton = QPushButton("Send Payment")
-        sendButton.setFont(buttonFont)
-
-        layout.addWidget(sendLabel)
-        layout.addStretch(1)
-        layout.addWidget(sendEdit)
-        layout.addStretch(1)
-        layout.addWidget(sendButton)
-        layout.addStretch(10)
-
-        self.leftLayout.addStretch(1)
-        self.leftLayout.addLayout(layout)
-        self.leftLayout.addStretch(1)
-
-    def createCalculationsGUI(self):
+    def createTitle(self):
         """
-        Creates the section responsible for payment calculations.
+        Creates a title displaying the table number.
+        :return: The title as a QLabel.
         """
-        self.calculationsLayout = QHBoxLayout()
+        title = QLabel("Payment: Table 1")
+        title.setAlignment(Qt.AlignCenter)
+        title.setFont(QFont("", 20, QFont.Bold, False))
+        return title
 
-        self.createCalculationsLabel()
-        self.createCalculationsEdit()
-        self.leftLayout.addLayout(self.calculationsLayout)
+    def createPayButton(self):
+        """
+        Creates a button to submit the payment.
+        :return: The payment button as a QPushButton.
+        """
+        payButton = QPushButton("Pay")
+        payButton.setFont(QFont("", 8, QFont.Bold, True))
+        payButton.clicked.connect(lambda x: self.clickedPayButton.emit())
+        return payButton
 
-    def createBackButtonGUI(self):
+    def createBackButton(self):
         """
-        Creates a button to go back a screen.
+        Creates a button that sends user to previous screen.
+        :return: The back button as a QPushButton.
         """
-        buttonFont = QFont("", 8, QFont.Bold, True)
         backButton = QPushButton("Back")
-        backButton.setFont(buttonFont)
+        backButton.setMaximumWidth(400)
+        backButton.setFont(QFont("", 8, QFont.Bold, True))
+        backButton.clicked.connect(lambda isClicked: self.clickedBackButton.emit())
+        return backButton
 
-        layout = QHBoxLayout()
-        layout.addStretch(1)
-        layout.addWidget(backButton)
-        layout.addStretch(1)
-
-        self.bottomLayout.addStretch(1)
-        self.bottomLayout.addLayout(layout)
-
-    def createReceiptButtonGUI(self):
+    def createPrintButton(self):
         """
-        Creates a button to print the receipt.
+        Creates a button that prints the receipt for the user in a pop up
+        dialog.
+        :return: The receipt button as a QPushButton.
         """
-        buttonFont = QFont("", 20, QFont.Bold, True)
-        receiptButton = QPushButton("Print Receipt")
-        receiptButton.setFont(buttonFont)
-        receiptButton.setFixedSize(400, 100)
+        printButton = QPushButton("Print Receipt")
+        printButton.setFont(QFont("", 20, QFont.Bold, True))
+        printButton.clicked.connect(lambda isClicked: self.clickedPrintButton.emit())
+        printButton.setFixedSize(400, 100)
+        return printButton
 
-        layout = QHBoxLayout()
-        layout.addStretch(1)
-        layout.addWidget(receiptButton)
-        layout.addStretch(1)
-
-        self.bottomLayout.addStretch(1)
-        self.bottomLayout.addLayout(layout)
-
-    def createCalculationsLabel(self):
+    def setTableNumber(self, tableNumber):
         """
-        Creates the labels for the calculations section.
+        Sets the title of the screen to the given table number.
         """
-        labelFont = QFont("", 10, QFont.Normal, False)
-        labelList = ["Total:", "Paid:", "Remaining:", "Change:"]
-        labelLayout = QVBoxLayout()
+        self.title.setText("Payment: Table {}".format(tableNumber))
 
-        for text in labelList:
-            label = QLabel(text)
-            label.setFont(labelFont)
+    def setTotalFieldValue(self, value):
+        self.totalField.setValue(value)
 
-            layout = QHBoxLayout()
-            layout.addWidget(label)
-            labelLayout.addLayout(layout)
+    def setPaidFieldValue(self, value):
+        self.paidField.setValue(value)
 
-        self.calculationsLayout.addLayout(labelLayout)
+    def setRemainingFieldValue(self, value):
+        self.remainingField.setValue(value)
 
-    def createCalculationsEdit(self):
+    def setChangeFieldValue(self, value):
+        self.changeField.setValue(value)
+
+
+class InputField:
+    """
+    Used by the PaymentScreen to simplify GUI designing.
+    Combine a label and a line edit and stores their values..
+    """
+    def __init__(self, labelText, inputValue):
+        self.mainLayout = QHBoxLayout()
+        self.mainLayout.setAlignment(Qt.AlignCenter)
+
+        self.mainLayout.addStretch(1)
+
+        # Create the label
+        self.label = QLabel(labelText)
+        self.label.setMinimumWidth(200)
+        self.label.setFont(QFont("", 10, QFont.Normal, False))
+        self.mainLayout.addWidget(self.label)
+        self.mainLayout.addStretch(1)
+
+        # Create a currency format label
+        self.currencyFormatLabel = QLabel("£")
+        self.currencyFormatLabel.setMinimumWidth(10)
+        self.currencyFormatLabel.setFont(QFont("", 10, QFont.Normal, False))
+        self.mainLayout.addWidget(self.currencyFormatLabel)
+
+        # Create the input field
+        self.inputField = QLineEdit(inputValue)
+        self.inputField.setMaximumWidth(200)
+        self.inputField.setFont(QFont("", 8, QFont.Bold, False))
+        self.mainLayout.addWidget(self.inputField)
+
+        self.mainLayout.addStretch(1)
+
+    def setValue(self, value):
+        self.inputField.setText(str(value))
+
+    def getValue(self):
+        return self.inputField.text()
+
+    def clearValue(self):
         """
-        Creates the line edit widgets for the calculations section.
+        Sets the inputField to 00.00.
         """
-        editFont = QFont("", 8, QFont.Bold, False)
-        editLayout = QVBoxLayout()
-
-        totalEdit = QLineEdit()
-        paidEdit = QLineEdit()
-        remainingEdit = QLineEdit()
-        changeEdit = QLineEdit()
-        editList = [totalEdit, paidEdit, remainingEdit, changeEdit]
-
-        for edit in editList:
-            edit.setFont(editFont)
-            edit.setText("00.00")
-            edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
-            layout = QHBoxLayout()
-            layout.addStretch(1)
-            layout.addWidget(edit)
-            layout.addStretch(2)
-            editLayout.addLayout(layout)
-
-        self.calculationsLayout.addLayout(editLayout)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        self.inputField.setText(str("00.00"))
 
 
 class TableScreen(QWidget, QObject):
@@ -591,7 +601,7 @@ class MainView(QMainWindow):
 #        self.tabOrder = OrderView(menu)
         self.tabMenu = MenuView(menu)
         self.tabBook = BookingView()
-        self.tabPayment = PaymentView()
+#        self.tabPayment = PaymentView()
         self.tabHelp = HelpView()
 
         # Wrap menu, help and book tabs in scroll widgets to allow scrolling
@@ -616,7 +626,7 @@ class MainView(QMainWindow):
         self.tabs.addTab(self.menuScroll, "Menu")
 #        self.tabs.addTab(self.tabOrder, "Order")
         self.tabs.addTab(self.bookScroll, "Booking")
-        self.tabs.addTab(self.tabPayment, "Payment")
+#        self.tabs.addTab(self.tabPayment, "Payment")
         self.tabs.addTab(self.helpScroll, "Help")
 
         self.centralWidget().addWidget(self.splash)
