@@ -28,7 +28,8 @@ The project has been largely automated via the setup.py file. In summary, the
 
     python setup.py runInstall
     python setup.py runClient <SERVER_SOCKET>
-    python setup.py runTests
+    python setup.py runTest
+    python setup.py runManualTest
     python setup.py runClean
     python setup.py generateDoc
     python setup.py runDoc

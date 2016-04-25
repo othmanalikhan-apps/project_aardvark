@@ -7,50 +7,231 @@ client will view.
 In summary, the GUI is more or less built from multiple tab widgets which
 are all then added to a single main widget that is displayed.
 """
-from collections import OrderedDict
 
 __docformat__ = 'reStructuredText'
 
 import os
-import configparser
+
+from collections import OrderedDict
 
 from PyQt5.QtWidgets import (
-    QWidget, QPushButton, QLabel, QVBoxLayout,
-    QHBoxLayout, QTextEdit, QTabWidget, QStyleFactory,
+    QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QTabWidget,
     QStackedWidget, QMainWindow, QScrollArea, QSizePolicy, QLineEdit, QFrame,
-    QDesktopWidget)
+    QDesktopWidget, QFormLayout, QDateEdit, QComboBox
+)
 from PyQt5.QtGui import (
-    QFont,
-    QPixmap, QIcon)
+    QFont, QPixmap, QIcon
+)
 from PyQt5.QtCore import (
-    Qt,
-    QObject, pyqtSignal)
-from src.client.model import Client
+    Qt, QObject, pyqtSignal, QDate
+)
 
 
-class BookingView(QTabWidget):
-    pass
+class BookingView(QWidget, QObject):
+    """
+    Responsible for displaying the booking tab.
+    """
 
+    # customer's name, email, phone and booking's date, time, table
+    clickedBookingButton = pyqtSignal(str, str, str, object, str, str)
 
+    def __init__(self):
+        """
+        Constructs the booking tab.
+        """
+        super().__init__()
+        mainLayout = QVBoxLayout()
+        self.setLayout(mainLayout)
+        mainLayout.setAlignment(Qt.AlignCenter)
 
+        # Add title
+        self.mainTitleLayout = self.createTitleLayout()
+        mainLayout.addLayout(self.mainTitleLayout)
 
+        # Add image
+        self.mainImage = self.createImageLayout()
+        mainLayout.addLayout(self.mainImage)
+        mainLayout.addSpacing(20)
 
+        # Add forms for customer and booking details
+        formsLayout = QHBoxLayout()
+        formsLayout.setAlignment(Qt.AlignCenter)
 
+        customerDetailsForm = self.createCustomerDetailsLayout()
+        bookingDetailsForm = self.createBookingDetailsLayout()
 
+        formsLayout.addStretch(1)
+        formsLayout.addLayout(customerDetailsForm)
+        formsLayout.addStretch(1)
+        formsLayout.addLayout(bookingDetailsForm)
+        formsLayout.addStretch(1)
 
+        # Add both forms to main layout
+        mainLayout.addLayout(formsLayout)
+        mainLayout.addSpacing(20)
 
+        # Create a booking status layout that contains the booking button
+        # and reference number
+        bookingStatusLayout = self.createBookingStatusLayout()
+        mainLayout.addStretch(2)
+        mainLayout.addLayout(bookingStatusLayout)
+        mainLayout.addStretch(1)
 
+    def createBookingStatusLayout(self):
+        """
+        Creates a layout containing the booking button and label which
+        displays the reference number.
+        :return: The booking status layout.
+        """
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        bookingButton = self.createBookingButton()
+        self.bookingStatusLabel = self.createBookingStatusLabel()
+        layout.addStretch(1)
+        layout.addWidget(bookingButton)
+        layout.addStretch(2)
+        layout.addWidget(self.bookingStatusLabel)
+        layout.addStretch(1)
+        return layout
 
+    def createCustomerDetailsLayout(self):
+        """
+        Creates a layout containing name, email and phone number fields
+        :return: The customer details layout.
+        """
+        layout = QFormLayout()
+        layout.setFormAlignment(Qt.AlignCenter)
+        layout.setLabelAlignment(Qt.AlignCenter)
+        layout.setVerticalSpacing(20)
 
+        self.nameField = QLineEdit()
+        self.nameField.setMinimumWidth(300)
+        layout.addRow("Name: ", self.nameField)
 
+        self.emailField = QLineEdit()
+        self.emailField.setMinimumWidth(300)
+        layout.addRow("Email: ", self.emailField)
 
+        self.phoneField = QLineEdit()
+        self.phoneField.setMinimumWidth(300)
+        layout.addRow("Phone: ", self.phoneField)
+        return layout
 
+    def createBookingDetailsLayout(self):
+        """
+        Creates a layout containing date, time and table fields.
+        The date field implements a calendar widget allowing user to select date from a calendar.
+        :return: The booking details layout.
+        """
+        layout = QFormLayout()
+        layout.setFormAlignment(Qt.AlignCenter)
+        layout.setLabelAlignment(Qt.AlignCenter)
+        layout.setVerticalSpacing(20)
 
+        self.dateField = QDateEdit(QDate.currentDate())
+        self.dateField.setMinimumDate(QDate.currentDate())
+        self.dateField.setCalendarPopup(True)
+        self.dateField.setMinimumWidth(100)
+        layout.addRow("Date: ", self.dateField)
 
+        self.timeField = QComboBox()
+        self.timeField.addItems(["13:00", "Hammer", "Go", "19:00"])
+        self.timeField.setMinimumWidth(100)
+        layout.addRow("Time: ", self.timeField)
 
+        self.tableField = QComboBox()
+        self.tableField.addItems(["1", "2", "99", "34"])
+        self.tableField.setMinimumWidth(100)
+        layout.addRow("Table: ", self.tableField)
+        return layout
 
+    def createImageLayout(self):
+        """
+        Creates a layout containing an image with a black border
+        :return: The layout of the image.
+        """
+        layout = QHBoxLayout()
+        imagePath = _getRelativePath('..', '..', 'asset', 'floor_plan.jpg')
+        pixMap = QPixmap(imagePath)
 
+        image = QLabel()
+        image.setAlignment(Qt.AlignCenter)
+        image.setStyleSheet("border: 2px solid black");
+        image.setPixmap(pixMap)
+        image.setFixedSize(600, 400)
+        image.setScaledContents(True)
+        layout.addWidget(image)
+        return layout
 
+    def createTitleLayout(self):
+        """
+        Creates a title displaying the number of the table.
+        :return: The layout of the title.
+        """
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        title = QLabel("Booking")
+        title.setAlignment(Qt.AlignCenter)
+        title.setFont(QFont("Arial", 20, QFont.Bold, False))
+        layout.addWidget(title)
+        return layout
+
+    def createBookingButton(self):
+        """
+        Create a button that emits a clickedBookingButton signal when clicked on
+        :return:
+        """
+        bookingButton = QPushButton("Make Booking")
+        bookingButton.setFont(QFont("", 14, QFont.Bold, False))
+        # Emit a signal containing customer's name, email, phone and the
+        # booking date, time, table entered in the fields when clicked
+        bookingButton.clicked.connect(
+            lambda isClicked: self.clickedBookingButton.emit(
+            self.getCustomerName(),
+            self.getCustomerEmail(),
+            self.getCustomerPhone(),
+            self.getBookingDate(),
+            self.getBookingTime(),
+            self.getBookingTable()
+        ))
+        bookingButton.setFixedSize(150, 50)
+        return bookingButton
+
+    def createBookingStatusLabel(self):
+        """
+        Creates the label used for displaying the success of a booking
+        and the reference number
+        :return: The booking status label.
+        """
+        label = QLabel("Reference #329382")
+        label.setAlignment(Qt.AlignCenter)
+        label.setFont(QFont("", 16, QFont.Bold, True))
+        return label
+
+    def setBookingStatusText(self, text):
+        """
+        Sets the message to be displayed after completing the booking.
+        :param text: message to be displayed on the label.
+        """
+        self.bookingStatusLabel.setText(text)
+
+    def getCustomerName(self):
+        return self.nameField.text()
+
+    def getCustomerEmail(self):
+        return self.emailField.text()
+
+    def getCustomerPhone(self):
+        return self.phoneField.text()
+
+    def getBookingDate(self):
+        return self.dateField.date()
+
+    def getBookingTable(self):
+        return self.tableField.currentText()
+
+    def getBookingTime(self):
+        return self.timeField.currentText()
 
 
 class OrderView(QStackedWidget, QObject):
@@ -557,7 +738,7 @@ class TableScreen(QWidget, QObject):
         mainLayout.addStretch(1)
 
         # Calculate total rows required for all buttons
-        tablesPerRow = 10
+        tablesPerRow = 5
         remainder = totalTables % tablesPerRow
         totalRows = totalTables // tablesPerRow
 
@@ -867,12 +1048,6 @@ class MainView(QMainWindow):
         self.bookScroll = QScrollArea()
         self.bookScroll.setWidget(self.tabBook)
         self.bookScroll.setWidgetResizable(True)
-
-        # Hacky solution for adding a border/frame effect
-#        self.scrollArea = QScrollArea()
-#        self.scrollArea.setWidget(self.tabs)
-#        self.scrollArea.setWidgetResizable(True)
-#        self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
 
         self.tabs.addTab(self.menuScroll, "Menu")
         self.tabs.addTab(self.tabOrder, "Order")

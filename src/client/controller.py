@@ -192,6 +192,29 @@ class OrderViewController:
         self.orderView.orderScreen.displayOrderedItems(self.orderedItems)
 
 
+class BookingViewController:
+    """
+    Controller for the Order View widget.
+    """
+
+    def __init__(self, bookingView):
+        """
+        Constructor that mainly connects buttons to handlers.
+        """
+        self.bookingView = bookingView
+        self.bookingView.clickedBookingButton.connect(self.handleBookingButtonClick)
+
+    def handleBookingButtonClick(self, customerName, customerPhone, customerEmail,
+                                            bookingDate, bookingTime, bookingTable):
+        print("Name: " + customerName)
+        print("Phone: " + customerPhone)
+        print("Email: " + customerEmail)
+        print("Date: " + bookingDate.toString())
+        print("Time: " + bookingTime)
+        print("Table: " + bookingTable)
+
+
+
 class PaymentViewController:
     """
     Controller for the Payment View widget.
