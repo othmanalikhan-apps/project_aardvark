@@ -5,6 +5,7 @@ As such, this module controls the transition between GUI components.
 
 In summary, the navigation flow is splash screen ---> multiple tab windows.
 """
+import collections
 
 __docformat__ = 'reStructuredText'
 
@@ -23,7 +24,7 @@ from src.client.view import (
 from src.client.model import Client
 
 
-class MainController():
+class MainController:
     """
     Controller class of the MVC pattern. Responsible for gluing GUI
     components together.
@@ -54,7 +55,7 @@ class MainController():
         """
         self.splashViewController = SplashViewController(self.window.splash, self.window)
         self.paymentViewController = PaymentViewController(self.window.tabPayment)
-#        self.orderViewController = OrderViewController(self.window.tabOrder)
+        self.orderViewController = OrderViewController(self.window.tabOrder)
 #        self.bookingViewController = BookingViewController(self.window.tabBook)
 
     def getApplicationStyle(self):
@@ -116,6 +117,79 @@ class SplashViewController:
         Event handler for the the continue button upon clicking.
         """
         self.mainWindow.displayTabs()
+
+
+class OrderViewController:
+    """
+    Controller for the Order View widget.
+    """
+
+    def __init__(self, orderView):
+        """
+        Constructor that mainly connects buttons to handlers.
+        """
+        self.orderedItems = collections.OrderedDict()
+        self.orderView = orderView
+        self.orderView.tableScreen.clickedTableButton.connect(self.handleTableButtonClick)
+        self.orderView.orderScreen.clickedFoodButton.connect(self.handleFoodButtonClick)
+        self.orderView.orderScreen.clickedSubtractButton.connect(self.handleSubtractButton)
+        self.orderView.orderScreen.clickedAddButton.connect(self.handleAddButton)
+        self.orderView.orderScreen.clickedBackButton.connect( self.handleBackButtonClick)
+        self.orderView.orderScreen.clickedSubmitButton.connect(self.handleSubmitButtonClick)
+
+    def handleFoodButtonClick(self, foodName):
+        """
+        Event handler that adds items to the ordered items and displays
+        the updated ordered items on the screen.
+        """
+        if foodName in self.orderedItems:
+            self.orderedItems[foodName] += 1
+        else:
+            self.orderedItems[foodName] = 1
+
+        self.orderView.orderScreen.displayOrderedItems(self.orderedItems)
+
+    def handleTableButtonClick(self, tableNumber):
+        """
+        Event handler for that switches the current displayed widget to the
+        order screen.
+        """
+        self.orderView.displayOrderScreen(tableNumber)
+
+    def handleSubmitButtonClick(self):
+        """
+        Event handler for that
+        """
+        print("You've clicked the submit button")
+
+    def handleBackButtonClick(self):
+        """
+        Event handler for that switches the current displayed widget to the
+        table screen.
+        """
+        self.orderView.displayTableScreen()
+
+    def handleSubtractButton(self, foodName):
+        """
+        Event handler that removes items from the ordered items and displays
+        the updated results on screen.
+        """
+        if foodName in self.orderedItems:
+            self.orderedItems[foodName] -= 1
+            if self.orderedItems[foodName] <= 0:
+                self.orderedItems.pop(foodName)
+
+        self.orderView.orderScreen.displayOrderedItems(self.orderedItems)
+
+    def handleAddButton(self, foodName):
+        """
+        Event handler that adds items from the ordered items and displays
+        the updated results on screen.
+        """
+        if foodName in self.orderedItems:
+            self.orderedItems[foodName] += 1
+
+        self.orderView.orderScreen.displayOrderedItems(self.orderedItems)
 
 
 class PaymentViewController:

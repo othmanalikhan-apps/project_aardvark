@@ -315,6 +315,15 @@ class Menu:
 
         return foodType
 
+    def getFoodTypes(self):
+        """
+        Gets the food types meant to be on the menu in order.
+        :return: A list containing the food types in order.
+        """
+        return ["starter", "main course", "dessert", "beverage"]
+
+
+
 
 class MenuSet(set):
     """

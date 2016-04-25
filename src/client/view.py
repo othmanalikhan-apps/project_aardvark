@@ -7,6 +7,7 @@ client will view.
 In summary, the GUI is more or less built from multiple tab widgets which
 are all then added to a single main widget that is displayed.
 """
+from collections import OrderedDict
 
 __docformat__ = 'reStructuredText'
 
@@ -49,15 +50,63 @@ class BookingView(QTabWidget):
 
 
 
+
+
+
+class OrderView(QStackedWidget, QObject):
+    """
+    Responsible for displaying the order tab.
+    """
+
+    def __init__(self, menu, tables):
+        """
+        Constructs the order tab.
+        """
+        super().__init__()
+        # First widget where all tables are displayed.
+        self.tableScreen = TableScreen(tables)
+        self.tableScroll = QScrollArea()
+        self.tableScroll.setWidget(self.tableScreen)
+        self.tableScroll.setWidgetResizable(True)
+        self.addWidget(self.tableScroll)
+
+        # Second widget where order information for a particular table
+        # is displayed
+        self.orderScreen = OrderScreen(menu)
+        self.orderScroll = QScrollArea()
+        self.orderScroll.setWidget(self.orderScreen)
+        self.orderScroll.setWidgetResizable(True)
+        self.addWidget(self.orderScroll)
+
+        # Set the table screen as the default
+        self.setCurrentWidget(self.tableScroll)
+
+    def displayTableScreen(self):
+        """
+        Sets the current widget to the table screen.
+        """
+        self.setCurrentWidget(self.tableScroll)
+
+    def displayOrderScreen(self, tableNumber):
+        """
+        Sets the current widget to the order screen.
+        """
+        self.setCurrentWidget(self.orderScroll)
+        self.orderScreen.setTableNumber(tableNumber)
+
+
 class OrderScreen(QWidget, QObject):
     """
     Displays all the items on the menu that can be ordered as buttons.
     Clicking on an item adds it to the ordered items section.
     """
     clickedFoodButton = pyqtSignal(str)
-    clickedSubmitButton = pyqtSignal(str)
+    clickedSubtractButton = pyqtSignal(str)
+    clickedAddButton = pyqtSignal(str)
+    clickedSubmitButton = pyqtSignal()
+    clickedBackButton = pyqtSignal()
 
-    def __init__(self,menu):
+    def __init__(self, menu):
         """
         Constructs the order screen which consists of titles of the food
         types, followed by buttons representing the food.
@@ -72,11 +121,13 @@ class OrderScreen(QWidget, QObject):
         # Get the food types and create a title for each type
         # Then create an entry for each of the foods within the food type
         foodType = menu.categorizeFood()
-        typeNames = ["starter", "main course", "dessert", "beverage"]
 
-        for type in typeNames:
+        for type in menu.getFoodTypes():
             # Create a title for each food type
-            titleLayout = self.createTitleLayout(type.title())
+            title = self.createTitle(type.title())
+            titleLayout = QHBoxLayout()
+            titleLayout.setAlignment(Qt.AlignCenter)
+            titleLayout.addWidget(title)
             mainLayout.addLayout(titleLayout)
 
             # Group food buttons in rows
@@ -87,49 +138,60 @@ class OrderScreen(QWidget, QObject):
 
             # Add row to main layout
             mainLayout.addLayout(rowLayout)
+            mainLayout.addSpacing(20)
 
         # Ordered items section
-        orderedItemsTitleLayout = self.createTitleLayout("Ordered Items")
+        self.orderedItemsTitle = self.createTitle("Ordered Items")
+        orderedItemsTitleLayout = QHBoxLayout()
+        orderedItemsTitleLayout.setAlignment(Qt.AlignCenter)
+        orderedItemsTitleLayout.addWidget(self.orderedItemsTitle)
         mainLayout.addLayout(orderedItemsTitleLayout)
 
-        # Submit order button
-        submitButtonLayout = self.createSubmitButtonLayout()
-        mainLayout.addLayout(submitButtonLayout)
+        self.orderedItemsLayout = QVBoxLayout()
+        mainLayout.addLayout(self.orderedItemsLayout)
+
+        # Navigation section at end of page
+        submitButton = self.createSubmitButton()
+        backButton = self.createBackButton()
+        navigationLayout = QHBoxLayout()
+        navigationLayout.setAlignment(Qt.AlignCenter)
+        navigationLayout.addWidget(backButton)
+        navigationLayout.addSpacing(20)
+        navigationLayout.addWidget(submitButton)
+        mainLayout.addLayout(navigationLayout)
 
     def displayOrderedItems(self, orderedItems):
         """
         Updates the ordered items section displaying their quantity
         and description.
-        :param orderedItems: A list containing the names of the food items
-        ordered.
+        :param orderedItems: An ordered dictionary containing the names of
+        the food items and their quantities.
         """
         # Remove all items from previous display
         self.clearLayout(self.orderedItemsLayout)
 
-        for itemName in orderedItems:
+        for (itemName, quantity) in orderedItems.items():
             # Create label to display the quantity
             layout = QHBoxLayout()
-            quantityLabel = QLabel()
-            quantityLabel.setText("3x")
+            quantityLabel = QLabel("{}x".format(quantity))
+            quantityLabel.setFont(QFont("", 10, QFont.Bold, True))
             quantityLabel.setMaximumWidth(20)
-            quantityFont = QFont("", 10, QFont.Bold, True)
-            quantityLabel.setFont(quantityFont)
             layout.addWidget(quantityLabel)
-
             layout.addSpacing(10)
 
             # Create label to display the name
-            nameLabel = QLabel()
-            nameLabel.setText(itemName)
-            nameFont = QFont("", 10, QFont.StyleItalic, True)
-            nameLabel.setFont(nameFont)
+            nameLabel = QLabel(itemName)
+            nameLabel.setFont(QFont("", 10, QFont.StyleItalic, True))
             layout.addWidget(nameLabel)
 
-            # Add the combined labels layout to the orderItemsLayout
-            self.orderedItemsLayout.addLayout(layout)
+            # Create the add and subtract button to remove quantity
+            subtractButton = self.createSubtractButton(itemName)
+            addButton = self.createAddButton(itemName)
+            layout.addWidget(subtractButton)
+            layout.addWidget(addButton)
 
-        self.mainLayout.insertLayout(self.mainLayout.count()-1,
-                                     self.orderedItemsLayout)
+            # Add all the combined widgets to the orderItemsLayout
+            self.orderedItemsLayout.addLayout(layout)
 
     def createFoodButton(self, text):
         """
@@ -143,8 +205,9 @@ class OrderScreen(QWidget, QObject):
         button.setLayout(QVBoxLayout())
 
         label = QLabel(button)
-        label.setText(text)
+        label.setText(text.title())
         label.setAlignment(Qt.AlignCenter)
+        label.setFont(QFont("Arial", 10, QFont.Normal, True))
         label.setMouseTracking(False)
         label.setWordWrap(True)
         label.setTextInteractionFlags(Qt.NoTextInteraction)
@@ -157,33 +220,72 @@ class OrderScreen(QWidget, QObject):
                                self.clickedFoodButton.emit(foodName))
         return button
 
-    def createSubmitButtonLayout(self):
+    def createSubtractButton(self, foodName):
         """
-        Creates the submit button and it's layout.
-        :return: The layout of the submit button.
+        Creates a subtract button corresponding to an item name in the
+        ordered items basket.
+        :param: The name of the food the button corresponds to.
+        :return: The subtract button.
+        """
+        button = QPushButton("-")
+        button.setFixedSize(20, 20)
+        button.setLayout(QVBoxLayout())
+
+        # Emit a signal when the button is pressed with the button's text as
+        # the argument
+        button.clicked.connect(lambda isClicked:
+                               self.clickedSubtractButton.emit(foodName))
+        return button
+
+    def createAddButton(self, foodName):
+        """
+        Creates an add button corresponding to an item name in the
+        ordered items basket.
+        :param: The name of the food the button corresponds to.
+        :return: The add button.
+        """
+        button = QPushButton("+")
+        button.setFixedSize(20, 20)
+        button.setLayout(QVBoxLayout())
+
+        # Emit a signal when the button is pressed with the button's text as
+        # the argument
+        button.clicked.connect(lambda isClicked:
+                               self.clickedAddButton.emit(foodName))
+        return button
+
+    def createSubmitButton(self):
+        """
+        Creates the submit button.
+        :return: The submit button.
         """
         button = QPushButton("Submit Order")
-        button.setMaximumWidth(200)
-        button.setMinimumHeight(50)
+        button.setMaximumWidth(500)
+        button.setMinimumHeight(20)
         button.clicked.connect(lambda isClicked: self.clickedSubmitButton.emit())
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignCenter)
-        layout.addSpacing(20)
-        layout.addWidget(button)
-        return layout
+        return button
 
-    def createTitleLayout(self, text):
+    def createBackButton(self):
+        """
+        Creates a button that sends user to previous screen.
+        :return: The back button as a QPushButton.
+        """
+        button = QPushButton("Back")
+        button.setMaximumWidth(500)
+        button.setMinimumHeight(20)
+        button.clicked.connect(lambda isClicked: self.clickedBackButton.emit())
+        return button
+
+    def createTitle(self, text):
         """
         Creates a title for each type of food (e.g. starter, desserts, etc).
         :param text: The string text of the title.
+        :return: The title as a QLabel.
         """
         title = QLabel(text)
         title.setFont(QFont("Arial", 20, QFont.Bold, False))
         title.setAlignment(Qt.AlignCenter)
-        layout = QHBoxLayout()
-        layout.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title)
-        return layout
+        return title
 
     def clearLayout(self, layout):
         """
@@ -197,6 +299,13 @@ class OrderScreen(QWidget, QObject):
                     widget.deleteLater()
                 else:
                     self.clearLayout(item.layout())
+
+    def setTableNumber(self, tableNumber):
+        """
+        Sets the ordered items title to the given table number.
+        """
+        self.orderedItemsTitle.setText("Ordered Items: Table {}"
+                                       .format(tableNumber))
 
 
 class PaymentView(QStackedWidget, QObject):
@@ -576,16 +685,11 @@ class HelpView(QWidget):
         mainLayout = QVBoxLayout()
         self.setLayout(mainLayout)
 
-        helpText = self.generateHelpText()
-
-        # Determines the order in which the sections are displayed
-        sections = ["Quick Guide", "About Us", "Contact Us", "Legal"]
-
         # Create a label for each of the title and description
         # and add it to main layout
-        for section in sections:
+        for (section, rawText) in self.generateHelpText().items():
             title = self.createTitle(section)
-            description = self.createDescription(helpText[section])
+            description = self.createDescription(rawText)
 
             mainLayout.addStretch(1)
             mainLayout.addWidget(title)
@@ -598,30 +702,29 @@ class HelpView(QWidget):
         each section.
         :return: A dictionary which maps section title to section text.
         """
-        helpText = {
-            "Quick Guide": "MENU TAB: Displays the restaurant menu\n\n"
+        helpText = OrderedDict([
+        ("Quick Guide", "MENU TAB: Displays the restaurant menu\n\n"
                            "ORDER TAB: Allows taking an order for a table\n\n"
                            "BOOKING TAB: Allows booking for a customer\n\n"
                            "PAYMENT TAB: Takes the payment of a customer\n\n"
-                           "HELP TAB:  Displays some basic information",
-            "About Us": "Team Aardvark is a group of Aardvarks that are "
+                           "HELP TAB:  Displays some basic information"),
+        ("About Us", "Team Aardvark is a group of Aardvarks that are "
                         "soon to undergo metamorphosis. Perhaps someday "
                         "we will be able to surpass the creature that "
                         "is also known as man. But for now, we wait "
-                        "patiently until time is due.",
-            "Contact Us": "Email: ProgrammerK@gmail.com\n"
+                        "patiently until time is due."),
+        ("Contact Us", "Email: ProgrammerK@gmail.com\n"
                           "Phone Number: 07472440699\n"
                           "Address: Team Aardvark, 20 Springfield, "
-                          "Leeds, LS2 9NG, United Kingdom.",
-            "Legal": "WE ARE NOT RESPONSIBLE FOR ANY DAMAGE INCURRED BY THE "
+                          "Leeds, LS2 9NG, United Kingdom."),
+        ("Legal", "WE ARE NOT RESPONSIBLE FOR ANY DAMAGE INCURRED BY THE "
                      "USE OF OUR PRODUCT NOR SHALL WE HOLD ANY LIABILITY. "
                      "ALL USE OF THE PRODUCT IS STRICTLY THE SOLE "
                      "RESPONSIBILITY OF THE USER.\n"
                      "REVERSE ENGINEERING AND MODIFICATION OF CODE IS ALLOWED"
                      " AS ALL THE CODE INVOLVED IN THE PROJECT IS CONSIDERED"
-                     " OPEN SOURCE."
-        }
-
+                     " OPEN SOURCE.")
+        ])
         return helpText
 
     def createTitle(self, text):
@@ -746,7 +849,7 @@ class MainView(QMainWindow):
         self.initializeUI()
 
         # Create 5 widgets which will be used in 5 different tabs
-#        self.tabOrder = OrderView(menu)
+        self.tabOrder = OrderView(menu, totalTables)
         self.tabMenu = MenuView(menu)
         self.tabBook = BookingView()
         self.tabPayment = PaymentView(totalTables)
@@ -772,7 +875,7 @@ class MainView(QMainWindow):
 #        self.setStyleSheet("border:1px solid rgb(0, 255, 0); ")
 
         self.tabs.addTab(self.menuScroll, "Menu")
-#        self.tabs.addTab(self.tabOrder, "Order")
+        self.tabs.addTab(self.tabOrder, "Order")
         self.tabs.addTab(self.bookScroll, "Booking")
         self.tabs.addTab(self.tabPayment, "Payment")
         self.tabs.addTab(self.helpScroll, "Help")
