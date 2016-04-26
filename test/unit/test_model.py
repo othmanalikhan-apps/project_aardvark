@@ -82,8 +82,20 @@ class ClientTest(unittest.TestCase):
         self.mockMenu = MagicMock()
         self.mockMenu.items = [self.wood, self.bread, self.cardboard]
 
-    @patch("client.model.Client.parseJsonMenu")
-    @patch("client.model.Menu")
+    @patch("requests.get")
+    def testRequestTotalTables(self, mockRequestMethod):
+        """
+        Tests whether the client can fetch the total number of tables from a
+        mock object representing the server.
+        """
+        response = MagicMock()
+        response.text = totalTables = 50
+        mockRequestMethod.return_value = response
+
+        self.assertEqual(self.client.requestTotalTables().text, totalTables)
+
+    @patch("src.client.model.Client.parseJsonMenu")
+    @patch("src.client.model.Menu")
     @patch("requests.get")
     def testRequestMenu(self, mockRequestMethod, mockMenu, mockParse):
         """

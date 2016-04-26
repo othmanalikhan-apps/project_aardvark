@@ -277,8 +277,8 @@ setup(
     cmdclass={
         'runInstall': InstallInVirtualEnv,
         'runClient': RunClientCommand,
-        'runTests': PyTestCommand,
-        'runManualTests': ManualTestCommand,
+        'runTest': PyTestCommand,
+        'runManualTest': ManualTestCommand,
         'runClean': CleanCommand,
         'generateDoc': GenerateDocCommand,
         'runDoc': RunDocCommand,
