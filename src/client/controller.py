@@ -16,7 +16,7 @@ import PyQt5
 import configparser
 
 from PyQt5.QtWidgets import (
-    QApplication, QStyleFactory, QDesktopWidget
+    QApplication, QStyleFactory
 )
 from src.client.view import (
     MainView
@@ -56,7 +56,7 @@ class MainController:
         self.splashViewController = SplashViewController(self.window.splash, self.window)
         self.paymentViewController = PaymentViewController(self.window.tabPayment)
         self.orderViewController = OrderViewController(self.window.tabOrder)
-#        self.bookingViewController = BookingViewController(self.window.tabBook)
+        self.bookingViewController = BookingViewController(self.window.tabBook)
 
     def getApplicationStyle(self):
         """
@@ -212,7 +212,6 @@ class BookingViewController:
         print("Date: " + bookingDate.toString())
         print("Time: " + bookingTime)
         print("Table: " + bookingTable)
-
 
 
 class PaymentViewController:

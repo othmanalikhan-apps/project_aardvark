@@ -323,8 +323,6 @@ class Menu:
         return ["starter", "main course", "dessert", "beverage"]
 
 
-
-
 class MenuSet(set):
     """
     A simple set class that has the same properties as a set class

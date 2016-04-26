@@ -94,8 +94,8 @@ class ClientTest(unittest.TestCase):
 
         self.assertEqual(self.client.requestTotalTables().text, totalTables)
 
-    @patch("src.client.model.Client.parseJsonMenu")
-    @patch("src.client.model.Menu")
+    @patch("client.model.Client.parseJsonMenu")
+    @patch("client.model.Menu")
     @patch("requests.get")
     def testRequestMenu(self, mockRequestMethod, mockMenu, mockParse):
         """
