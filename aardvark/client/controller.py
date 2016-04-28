@@ -280,6 +280,16 @@ def _getRelativePath(*args):
     """
     return os.path.abspath(os.path.join(os.path.dirname(__file__), *args))
 
+
+def main():
+    """
+    Main entry point to run GUI.
+    """
+    MainController()
+
+if __name__ == "__main__":
+    main()
+
 #def fixPluginBug():
 #    """
 #    Points PyQt to a .dll file that fixes the 'windows' missing plugin bug.

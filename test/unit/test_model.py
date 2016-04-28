@@ -30,7 +30,7 @@ class ClientTest(unittest.TestCase):
                          "My hopes and dreams...",
                          11]
 
-        self.JsonFood = \
+        self.jsonFood = \
         {
             "name": self.foodInfo[0],
             "type": self.foodInfo[1],
@@ -38,7 +38,11 @@ class ClientTest(unittest.TestCase):
             "price": self.foodInfo[3],
         }
 
-        self.JsonMenu = {"menu": [self.JsonFood, self.JsonFood]}
+        # The json style is identical to the way Django sends serialized
+        # model data in json formatting. All keys are omitted except the
+        # relevant key which is "fields"
+        self.receivedJsonMenu = [{"fields": self.jsonFood},
+                                 {"fields": self.jsonFood}]
 
         self.client = Client()
         self.setUpFood()
@@ -49,10 +53,10 @@ class ClientTest(unittest.TestCase):
         Sets up a dummy food object.
         """
         self.mockFood = MagicMock()
-        self.mockFood.name = self.JsonFood["name"]
-        self.mockFood.type = self.JsonFood["type"]
-        self.mockFood.description = self.JsonFood["description"]
-        self.mockFood.price = self.JsonFood["price"]
+        self.mockFood.name = self.jsonFood["name"]
+        self.mockFood.type = self.jsonFood["type"]
+        self.mockFood.description = self.jsonFood["description"]
+        self.mockFood.price = self.jsonFood["price"]
 
     def setUpMenu(self):
         """
@@ -94,21 +98,30 @@ class ClientTest(unittest.TestCase):
     @patch("aardvark.client.model.Client.parseJsonMenu")
     @patch("aardvark.client.model.Menu")
     @patch("requests.get")
-    def testRequestMenu(self, mockRequestMethod, mockMenu, mockParse):
+    @patch("requests.codes")
+    @patch("json.loads")
+    def testRequestMenu(self, _, mockCodes, mockRequestMethod,
+                        mockMenu, mockParse):
         """
         Tests whether the client can fetch the menu from a mock object
         representing the server.
         """
         response = MagicMock()
-        response.text = self.JsonMenu
+        response.text = self.receivedJsonMenu
+        response.status_code = 200
 
         mockRequestMethod.return_value = response
         mockParse.return_value = [self.mockFood, self.mockFood]
+        mockCodes.ok = 200
 
         menuArgs = [call([self.mockFood, self.mockFood])]
-        menu = self.client.requestMenu()
 
+        self.client.requestMenu()
         self.assertEqual(mockMenu.call_args_list, menuArgs)
+
+        with self.assertRaises(ConnectionError):
+            response.status_code = 404
+            self.client.requestMenu()
 
     @patch("aardvark.client.model.Food")
     @patch("aardvark.client.model.Client.parseJsonFood")
@@ -119,14 +132,8 @@ class ClientTest(unittest.TestCase):
         """
         mockParse.return_value = self.foodInfo
         mockFoodClass.return_value = self.mockFood
+        foodList = self.client.parseJsonMenu(self.receivedJsonMenu)
 
-        parseArgs = [call(self.JsonFood), call(self.JsonFood)]
-        foodArgs = [call(self.foodInfo), call(self.foodInfo)]
-
-        foodList = self.client.parseJsonMenu(self.JsonMenu)
-
-        self.assertListEqual(mockParse.call_args_list, parseArgs)
-        self.assertListEqual(mockFoodClass.call_args_list, foodArgs)
         self.assertListEqual(foodList, [self.mockFood, self.mockFood])
 
     def testParseJsonFood(self):
@@ -134,7 +141,7 @@ class ClientTest(unittest.TestCase):
         Tests whether data about menu in Json formatting can be parsed
         correctly (so that it can later be fed into the Food constructor).
         """
-        foodData = self.client.parseJsonFood(self.JsonFood)
+        foodData = self.client.parseJsonFood(self.jsonFood)
         self.assertEqual(foodData, self.foodInfo)
 
     def testConvertFoodToJson(self):
@@ -143,7 +150,7 @@ class ClientTest(unittest.TestCase):
         formatting correctly.
         """
         self.assertDictEqual(self.client.convertFoodToJson(self.mockFood),
-                             self.JsonFood)
+                             self.jsonFood)
 
     @patch("requests.post")
     def testSendMenu(self, requestPostMethod):
@@ -152,11 +159,14 @@ class ClientTest(unittest.TestCase):
         representing the server.
         """
         mockResponse = MagicMock()
-        mockResponse.text = self.JsonMenu
+        mockResponse.text = self.receivedJsonMenu
         requestPostMethod.return_value = mockResponse
 
-        self.assertDictEqual(self.client.sendMenu(self.mockMenu).text,
-                             self.JsonMenu)
+        response = self.client.sendMenu(self.mockMenu)
+
+        self.assertTrue(len(response.text) == 2)
+        for foodData in response.text:
+            self.assertDictEqual(foodData["fields"], self.jsonFood)
 
 
 class ReservationTest(unittest.TestCase):

@@ -4,6 +4,7 @@ Model module of the MVC pattern of the client GUI.
 As such, this module contains the core logic of the restaurant billing and
 order system.
 """
+import json
 
 __docformat__ = 'reStructuredText'
 
@@ -16,20 +17,21 @@ class Client:
     server for additional information.
     """
 
-    def __init__(self, httpURL="http://127.0.0.1:8000"):
+    def __init__(self, serverSocket="127.0.0.1:8000"):
         """
         Attempts to connect to the http server.
 
-        :param httpURL: The host URL to be communicated to.
+        :param serverSocket: The host URL to be communicated to.
         """
         tableToDir = {"table": "/table",
                       "booking": "/booking",
                       "order": "/order",
-                      "menu": "/menu"}
+                      "getMenu": "/menu/get",
+                      "sendMenu": "/menu/update"}
 
         self.tableToURL = {}
         for table, dir in tableToDir.items():
-            self.tableToURL[table] = httpURL + dir
+            self.tableToURL[table] = "http://" + serverSocket + dir
 
     def requestMenu(self):
         """
@@ -37,9 +39,15 @@ class Client:
 
         :return: An instantiated Menu object.
         """
-        response = requests.get(self.tableToURL["menu"])
-        parsedData = self.parseJsonMenu(response.text)
-        return Menu(parsedData)
+        response = requests.get(self.tableToURL["getMenu"])
+        if response.status_code != requests.codes.ok:
+            raise ConnectionError("Unable to fetch menu from server!")
+
+        jsonData = json.loads(response.content.decode("utf-8"))
+        parsedData = self.parseJsonMenu(jsonData)
+        menu = Menu(parsedData)
+
+        return menu
 
     def requestTotalTables(self):
         """
@@ -58,13 +66,13 @@ class Client:
         :param: An instantiated menu object.
         :return: Response code of the post request.
         """
-        JsonMenu = {"food": []}
+        JsonMenu = []
 
         for food in menu.items:
             JsonFood = self.convertFoodToJson(food)
-            JsonMenu["food"].append(JsonFood)
+            JsonMenu.append({"fields": JsonFood})
 
-        response = requests.post(self.tableToURL["menu"], data=JsonMenu)
+        response = requests.post(self.tableToURL["sendMenu"], data=JsonMenu)
         return response
 
     def parseJsonMenu(self, JsonMenu):
@@ -72,13 +80,13 @@ class Client:
         Parses Json input containing data about the menu to a suitable form
         that can be directly passed into the Menu constructor.
 
-        :param JsonMenu: The Json text containing data about the menu.
+        :param JsonMenu: A dictionary containing data about the menu.
         :return: A list of Food objects (used to construct a Menu object).
         """
         foodList = []
 
-        for foodData in JsonMenu["menu"]:
-            parsedData = self.parseJsonFood(foodData)
+        for foodData in JsonMenu:
+            parsedData = self.parseJsonFood(foodData["fields"])
             foodList.append(Food(parsedData))
 
         return foodList
@@ -454,13 +462,13 @@ class Food:
     @price.setter
     def price(self, foodPrice):
         """
-        :param foodPrice: The name of the food must be a non-negative number.
+        :param foodPrice: The price of the food must be a non-negative number.
         """
         try:
-            int(foodPrice)
+            float(foodPrice)
         except:
             raise TypeError("The food price must be a number.")
 
-        if foodPrice < 0:
+        if float(foodPrice) < 0:
             raise ValueError("The food price must be non-negative.")
         self._price = foodPrice
