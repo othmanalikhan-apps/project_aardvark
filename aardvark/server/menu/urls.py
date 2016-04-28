@@ -1,5 +1,3 @@
-#TODO: Upgrade URL mapping to more formal mappings
-
 from django.conf.urls import url
 
 from . import views

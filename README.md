@@ -53,3 +53,16 @@ For further built-in **bonus** commands by default, seek help via:
 ## License
 
 This code is distributed under the MIT license. For further information, see the LICENSE file.
+
+
+## TODO
+
+* setup.py:
+ * Add a run server command class to setup.py
+ * Add the DEC10 commands for installing PyQt, Django, Sphinx
+ 
+* Django:
+ * Upgrade URL mapping to more formal and proper mappings
+
+* Issue Tracker:
+ * Report fixed GUI misalignment bug of description boxo
