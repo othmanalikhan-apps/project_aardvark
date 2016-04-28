@@ -13,6 +13,7 @@ import os
 import subprocess
 import shutil
 import webbrowser
+import pytest
 
 import sys
 from sys import platform as _platform
@@ -100,18 +101,17 @@ class PyTestCommand(test):
 
     def run(self):
         """
-        Semantically, runs 'python test/run_tests.py' on the command line.
+        Runs both client and django server tests.
         """
-        clientTestFile = os.path.join(os.getcwd(), "test", "run_tests.py")
-        serverTestFile = os.path.join(os.getcwd(), "aardvark", "server",
-                                      "manage.py")
-
         print("Starting Client Tests:")
-        errno1 = subprocess.call([sys.executable, clientTestFile])
+        args = ["test"]
+        errno1 = pytest.main(args)
         if errno1 != 0:
             raise SystemExit("Unable to run client tests or they failed!")
 
         print("\n\nStarting Server Tests:")
+        serverTestFile = os.path.join(os.getcwd(),
+                                      "aardvark", "server", "manage.py")
         errno2 = subprocess.call([sys.executable, serverTestFile, "test"],
                                  cwd=os.path.dirname(serverTestFile))
         if errno2 != 0:
@@ -173,7 +173,7 @@ class CleanCommand(Command):
         """
         ignoreDirs = ["aardvark", "test", "doc", ".git", ".idea", "asset"]
         ignoreFiles = [".gitignore", ".gitlab-ci.yml", "README.md",
-                       "setup.py", "settings.ini", "pytest.ini"]
+                       "setup.py", "settings.ini", "pytest.ini", "LICENSE"]
 
 
         deleteDirs = [dir for dir in os.listdir(".")
@@ -284,7 +284,7 @@ setup(
     version='1.0',
     packages=find_packages(),
 
-    install_requires=['requests', 'Sphinx', 'Django'],
+    install_requires=['requests', 'Sphinx', 'Django', 'pytest'],
 
     cmdclass={
         'runInstall': InstallInVirtualEnv,
