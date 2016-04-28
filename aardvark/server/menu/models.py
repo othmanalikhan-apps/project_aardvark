@@ -9,8 +9,8 @@ class Food(models.Model):
 
     Attributes:
         :name:              The name of the food.
-        :type:              The type of the food limited to: 'starter',
-                            'main course', 'dessert' and 'beverage'.
+        :type:              The type of the food limited to: "starter",
+                            "main course", "dessert" and "beverage".
         :description:       The description of the food.
         :price:             The price of the food in GBP.
         :popularity:        The popularity of the food.
@@ -31,7 +31,7 @@ class Food(models.Model):
     price = models.DecimalField(max_digits=5,
                                 decimal_places=2,
                                 blank=False,
-                                default=Decimal('0.00'))
+                                default=Decimal("0.00"))
     popularity = models.IntegerField(default=0)
 
     def __str__(self):
@@ -49,8 +49,11 @@ class Food(models.Model):
         ordering = ["name"]
 
 
-class MenuAdmin(admin.ModelAdmin):
-    list_display = ["name", "type", "price"]
-    list_per_page = 10
-    list_filter = ["name", "type", "price"]
-    search_fields = ["name", "type", "description"]
+class FoodAdmin(admin.ModelAdmin):
+    list_display = ("name", "type", "price", "popularity")
+    ordering = ("type", "name")
+    list_per_page = 25
+
+    search_fields = ("name", "type", "description", "price", "popularity")
+    list_filter = ("type", "price", "popularity")
+    readonly_fields = ("popularity",)
