@@ -1,5 +1,5 @@
-Model Module Documentation
+Views Module Documentation
 =====================================================
 
-.. automodule:: model 
+.. automodule:: menu.views
     :members:

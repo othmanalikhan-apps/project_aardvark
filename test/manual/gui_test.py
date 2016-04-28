@@ -64,8 +64,8 @@ import os
 import unittest
 import csv
 
-from src.client.controller import MainController
-from src.client.model import Menu
+from aardvark.client.controller import MainController
+from aardvark.client.model import Menu
 from unittest.mock import MagicMock, patch
 
 
@@ -99,7 +99,7 @@ class GUITest(unittest.TestCase):
 
         self.menu = Menu(items)
 
-    @patch("src.client.model.Client.requestMenu")
+    @patch("aardvark.client.model.Client.requestMenu")
     def testGUI(self, mockRequest):
         """
         Tests whether the GUI can be ran.

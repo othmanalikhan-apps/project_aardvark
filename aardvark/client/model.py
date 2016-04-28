@@ -1,5 +1,8 @@
 """
-The client side of the restaurant server-client system
+Model module of the MVC pattern of the client GUI.
+
+As such, this module contains the core logic of the restaurant billing and
+order system.
 """
 
 __docformat__ = 'reStructuredText'
@@ -31,6 +34,7 @@ class Client:
     def requestMenu(self):
         """
         Requests the menu from the server.
+
         :return: An instantiated Menu object.
         """
         response = requests.get(self.tableToURL["menu"])
@@ -40,6 +44,7 @@ class Client:
     def requestTotalTables(self):
         """
         Requests the total number of tables in the restaurant from the server.
+
         :return: The total number of tables.
         """
         query = {"search": "total_number"}
@@ -49,6 +54,8 @@ class Client:
     def sendMenu(self, menu):
         """
         Sends the server the menu in Json form.
+
+        :param: An instantiated menu object.
         :return: Response code of the post request.
         """
         JsonMenu = {"food": []}
@@ -66,8 +73,7 @@ class Client:
         that can be directly passed into the Menu constructor.
 
         :param JsonMenu: The Json text containing data about the menu.
-        :return: A list of Food objects (can be used to construct a Menu
-        object).
+        :return: A list of Food objects (used to construct a Menu object).
         """
         foodList = []
 
@@ -83,8 +89,7 @@ class Client:
         that can be directly passed into the Food constructor.
 
         :param JsonInput: The Json text containing data about the food.
-        :return: A list containing food data (can be used to construct a Food
-        object).
+        :return: A list containing food data (used to construct Food objects).
         """
         foodData = []
         dataAttributes = ["name", "type", "description", "price"]
@@ -106,6 +111,40 @@ class Client:
         JsonFormat["description"] = food.description
         JsonFormat["price"] = food.price
         return JsonFormat
+
+
+class Restaurant:
+    """
+    Represents the restaurant which is responsible for dealing with customers
+    currently in the restaurant. This includes managing table requests.
+    """
+
+    def __init__(self, menu, tableAmount):
+        """
+        Initializes a menu and table objects which represent the restaurant's
+        menu and tables.
+
+        :param menu: An instantiated menu object.
+        :param tableAmount: Number of tables available in the restaurant.
+        """
+        self.tables = []
+        self.menu = menu
+
+        for i in range(tableAmount):
+            self.tables.append(Table(i, self.menu))
+
+    def findEmptyTable(self):
+        """
+        Finds and returns a list of tables that are currently not being used by
+        any customer.
+
+        :return: A list of table objects that are available to be used.
+        """
+        availableTables = []
+        for table in self.tables:
+            if(table.isAvailable):
+                availableTables.append(table)
+        return availableTables
 
 
 class Reservation:
@@ -137,36 +176,6 @@ class Reservation:
                        "date": (d.year, d.month, d.day),
                        "time": (t.hour, t.minute)}
         return bookingDict
-
-
-class Restaurant:
-    """
-    Represents the restaurant which is responsible for dealing with customers
-    currently in the restaurant. This includes managing table requests.
-    """
-
-    def __init__(self, menu, tableAmount):
-        """
-        Initializes a menu and table objects which represent the restaurant's
-        menu and tables.
-        """
-        self.tables = []
-        self.menu = menu
-
-        for i in range(tableAmount):
-            self.tables.append(Table(i, self.menu))
-
-    def findEmptyTable(self):
-        """
-        Finds and returns a list of tables that are currently not being used by
-        any customer.
-        :return: A list of table objects that are available to be used.
-        """
-        availableTables = []
-        for table in self.tables:
-            if(table.isAvailable):
-                availableTables.append(table)
-        return availableTables
 
 
 class Table:
@@ -212,6 +221,7 @@ class Table:
     def computeBill(self):
         """
         Calculates the total price of all the food ordered.
+
         :return: The total bill for the table.
         """
         totalBill = 0
@@ -304,6 +314,7 @@ class Menu:
     def categorizeFood(self):
         """
         Separates the food into types (e.g. main course, desserts, etc).
+
         :return: A dictionary that maps food type to a food object.
         """
         foodType = {}
@@ -318,6 +329,7 @@ class Menu:
     def getFoodTypes(self):
         """
         Gets the food types meant to be on the menu in order.
+
         :return: A list containing the food types in order.
         """
         return ["starter", "main course", "dessert", "beverage"]
@@ -363,6 +375,8 @@ class Food:
     def __str__(self):
         """
         String representation of the food object.
+
+        :return: The item name, type, description and price.
         """
         nameString =  "Item: {}\n".format(self.name.capitalize())
         typeString = "Type: {}\n".format(self.type.capitalize())
@@ -400,7 +414,7 @@ class Food:
     @type.setter
     def type(self, foodType):
         """
-        :param foodName: The name of the food must be non-empty string.
+        :param foodType: The type of the food must be non-empty string.
         """
         validFoodTypes = ["starter", "main course", "dessert", "beverage"]
 
@@ -450,8 +464,3 @@ class Food:
         if foodPrice < 0:
             raise ValueError("The food price must be non-negative.")
         self._price = foodPrice
-
-
-if __name__ == "__main__":
-    pass
-

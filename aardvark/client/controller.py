@@ -5,23 +5,21 @@ As such, this module controls the transition between GUI components.
 
 In summary, the navigation flow is splash screen ---> multiple tab windows.
 """
-import collections
 
 __docformat__ = 'reStructuredText'
 
-
 import os
 import sys
-import PyQt5
 import configparser
+import collections
 
 from PyQt5.QtWidgets import (
     QApplication, QStyleFactory
 )
-from src.client.view import (
+from aardvark.client.view import (
     MainView
 )
-from src.client.model import Client
+from aardvark.client.model import Client
 
 
 class MainController:
@@ -60,8 +58,9 @@ class MainController:
 
     def getApplicationStyle(self):
         """
-        Attempts to return a preferred style. If not available, returns a default
-        os style.
+        Attempts to return a preferred style. If not available, returns a
+        default os style.
+
         :return: A style.
         """
         prefStyle = ["Windows"]
@@ -76,6 +75,7 @@ class MainController:
     def getServerSocket(self):
         """
         Gets the server socket from the .ini file.
+
         :return: The server socket in string format.
         """
         path = _getRelativePath('..', '..', 'settings.ini')
@@ -106,6 +106,9 @@ class SplashViewController:
         """
         Assigns a reference to the splash view widget and the main window.
         Also, assigns event handlers to a button.
+
+        :param splashView: An instantiated SplashView object.
+        :param mainWindow: An instantiated QWidget that is the MainWindow.
         """
         self.mainWindow = mainWindow
         self.splashView = splashView
@@ -127,6 +130,8 @@ class OrderViewController:
     def __init__(self, orderView):
         """
         Constructor that mainly connects buttons to handlers.
+
+        :param orderView: An instantiated OrderView object.
         """
         self.orderedItems = collections.OrderedDict()
         self.orderView = orderView
@@ -141,6 +146,8 @@ class OrderViewController:
         """
         Event handler that adds items to the ordered items and displays
         the updated ordered items on the screen.
+
+        :param foodName: The name of the food.
         """
         if foodName in self.orderedItems:
             self.orderedItems[foodName] += 1
@@ -153,6 +160,8 @@ class OrderViewController:
         """
         Event handler for that switches the current displayed widget to the
         order screen.
+
+        :param tableNumber: The number of the table.
         """
         self.orderView.displayOrderScreen(tableNumber)
 
@@ -173,6 +182,8 @@ class OrderViewController:
         """
         Event handler that removes items from the ordered items and displays
         the updated results on screen.
+
+        :param foodName: The name of the food.
         """
         if foodName in self.orderedItems:
             self.orderedItems[foodName] -= 1
@@ -185,6 +196,8 @@ class OrderViewController:
         """
         Event handler that adds items from the ordered items and displays
         the updated results on screen.
+
+        :param foodName: The name of the food.
         """
         if foodName in self.orderedItems:
             self.orderedItems[foodName] += 1
@@ -200,6 +213,8 @@ class BookingViewController:
     def __init__(self, bookingView):
         """
         Constructor that mainly connects buttons to handlers.
+
+        :param bookingView: An instantiated BookingView object.
         """
         self.bookingView = bookingView
         self.bookingView.clickedBookingButton.connect(self.handleBookingButtonClick)
@@ -222,6 +237,8 @@ class PaymentViewController:
     def __init__(self, paymentView):
         """
         Constructor that mainly connects buttons to handlers.
+
+        :param paymentView: An instantiated PaymentView object.
         """
         self.paymentView = paymentView
         self.paymentView.tableScreen.clickedTableButton.connect(self.handleTableButtonClick)
@@ -246,6 +263,8 @@ class PaymentViewController:
         """
         Event handler that switches the current displayed widget to the
         payment screen.
+
+        :param tableNumber: The number of the table.
         """
         self.paymentView.displayPaymentScreen(tableNumber)
 
@@ -261,10 +280,10 @@ def _getRelativePath(*args):
     """
     return os.path.abspath(os.path.join(os.path.dirname(__file__), *args))
 
-def fixPluginBug():
-    """
-    Points PyQt to a .dll file that fixes the 'windows' missing plugin bug.
-    """
-    dirname = os.path.dirname(PyQt5.__file__)
-    plugin_path = os.path.join(dirname, 'plugins', 'platforms')
-    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+#def fixPluginBug():
+#    """
+#    Points PyQt to a .dll file that fixes the 'windows' missing plugin bug.
+#    """
+#    dirname = os.path.dirname(PyQt5.__file__)
+#    plugin_path = os.path.join(dirname, 'plugins', 'platforms')
+#    os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path

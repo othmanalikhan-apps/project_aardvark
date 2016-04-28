@@ -1,6 +1,6 @@
-Controller Module Documentation
+Client Model Module Documentation
 =====================================================
 
-.. automodule:: controller 
+.. automodule:: model 
     :members:
 

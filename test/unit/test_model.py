@@ -1,7 +1,6 @@
 """
 A set of unit tests for the model module in the client package.
 """
-import os
 
 __docformat__ = 'reStructuredText'
 
@@ -11,10 +10,8 @@ from unittest.mock import patch
 from unittest.mock import call
 from datetime import datetime
 
-from .. import env
-from client.model import (
-    Client, Table, Food, Menu, MenuSet,
-    Reservation, Restaurant
+from aardvark.client.model import (
+    Client, Table, Food, Menu, MenuSet, Reservation, Restaurant
 )
 
 
@@ -94,8 +91,8 @@ class ClientTest(unittest.TestCase):
 
         self.assertEqual(self.client.requestTotalTables().text, totalTables)
 
-    @patch("client.model.Client.parseJsonMenu")
-    @patch("client.model.Menu")
+    @patch("aardvark.client.model.Client.parseJsonMenu")
+    @patch("aardvark.client.model.Menu")
     @patch("requests.get")
     def testRequestMenu(self, mockRequestMethod, mockMenu, mockParse):
         """
@@ -113,8 +110,8 @@ class ClientTest(unittest.TestCase):
 
         self.assertEqual(mockMenu.call_args_list, menuArgs)
 
-    @patch("client.model.Food")
-    @patch("client.model.Client.parseJsonFood")
+    @patch("aardvark.client.model.Food")
+    @patch("aardvark.client.model.Client.parseJsonFood")
     def testParseJsonMenu(self, mockParse, mockFoodClass):
         """
         Tests whether data about menu in Json formatting can be parsed
@@ -197,7 +194,7 @@ class RestaurantTest(unittest.TestCase):
     Unit test class for Restaurant.
     """
 
-    @patch("client.model.Table")
+    @patch("aardvark.client.model.Table")
     def setUp(self, mockTable):
         """
         Creates a restaurant object with a mock menu prior to each test.

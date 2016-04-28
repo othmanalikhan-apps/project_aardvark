@@ -1,3 +1,5 @@
+__docformat__ = 'reStructuredText'
+
 import json
 
 from django.core import serializers
@@ -8,6 +10,8 @@ from .models import Food
 def updateMenu(request):
     """
     Receives and stores a menu that is in JSON formatting into the database.
+
+    :param request: A django request object.
     :return: An empty HTTP response object.
     """
     if request.method == "POST":
@@ -21,6 +25,8 @@ def sendMenu(request):
     """
     Serializes all the data in the Food model, and returns it in JSON
     formatting.
+
+    :param request: A django request object.
     :return: The menu in JSON format.
     """
     if request.method == "GET":

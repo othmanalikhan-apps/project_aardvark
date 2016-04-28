@@ -1,10 +1,3 @@
-# TODO:
-# Add a run server command class
-# Add the DEC10 commands for installing PyQT + Django + Sphinx
-# runClient bug (argument is not being passed to script properly)
-# GUI misalignment bug of description
-# Add list of manual tests to GUI tests
-
 """
 A script that allows automated project management (Python's solution to a
 MAKEFILE).
@@ -29,6 +22,24 @@ from setuptools.command.install import install
 from setuptools.command.test import test
 
 
+# Yet to be used. It seems that subprocess.call does not inherit the
+# PYTHONPATH variable thus rendering this function useless.
+# The alternative solution to solve import issues (although perhaps not
+# optimal) is setting all import statements relative to the root directory
+# and then calling any script from the project root directory only. This is
+# specified by the cwd option in subprocess.call .
+def loadPaths():
+    """
+    Inserts the project paths into system path so that imports and running
+    scripts from other scripts does not result in import errors.
+    """
+    rootPath = os.path.dirname(os.path.abspath(__file__))
+    pathList = [os.path.join(rootPath, 'aardvark'),
+                os.path.join(rootPath, 'aardvark', 'client')]
+
+    for path in pathList:
+        sys.path.append(path)
+
 def readme():
     """
     Opens the README file and returns it's contents
@@ -36,6 +47,7 @@ def readme():
     """
     with open("README.md") as file:
         return file.read()
+
 
 class RunClientCommand(Command):
     """
@@ -61,9 +73,7 @@ class RunClientCommand(Command):
         Semantically, runs 'python src/client/mainTab.py SERVER_SOCKET' on the
         command line.
         """
-        loadPaths()
-        path = os.path.join("src", "client", "controller.py")
-
+        path = os.path.join("aardvark", "client", "controller.py")
         errno = subprocess.call([sys.executable, path])
         if errno != 0:
             raise SystemExit("Unable to run client GUI!")
@@ -93,7 +103,8 @@ class PyTestCommand(test):
         Semantically, runs 'python test/run_tests.py' on the command line.
         """
         clientTestFile = os.path.join(os.getcwd(), "test", "run_tests.py")
-        serverTestFile = os.path.join(os.getcwd(), "src", "server", "manage.py")
+        serverTestFile = os.path.join(os.getcwd(), "aardvark", "server",
+                                      "manage.py")
 
         print("Starting Client Tests:")
         errno1 = subprocess.call([sys.executable, clientTestFile])
@@ -131,9 +142,8 @@ class ManualTestCommand(test):
         Semantically, runs 'python test/manual/gui_test.py' on the
         command line.
         """
-        path = os.path.join("test", "manual", "gui_test.py")
-
-        errno = subprocess.call([sys.executable, path])
+        path = os.path.join("test", "manual")
+        errno = subprocess.call([sys.executable, "gui_test.py"], cwd=path)
         if errno != 0:
             raise SystemExit("Unable to run manual test!")
 
@@ -161,7 +171,7 @@ class CleanCommand(Command):
         """
         Deletes some folders that can be generated (cross-platform).
         """
-        ignoreDirs = ["src", "test", "doc", ".git", ".idea", "asset"]
+        ignoreDirs = ["aardvark", "test", "doc", ".git", ".idea", "asset"]
         ignoreFiles = [".gitignore", ".gitlab-ci.yml", "README.md",
                        "setup.py", "settings.ini", "pytest.ini"]
 
@@ -178,7 +188,8 @@ class CleanCommand(Command):
         for dir in deleteDirs:
             shutil.rmtree(dir)
 
-        errno = subprocess.call('cd doc && make clean', shell=True)
+        path = os.path.join("doc")
+        errno = subprocess.call('make clean', shell=True, cwd=path)
         if errno != 0:
             raise SystemExit("Unable to clean docs!")
 
@@ -206,8 +217,9 @@ class GenerateDocCommand(Command):
         """
         Generates the project documentation.
         """
-        errno = subprocess.call('cd doc && make clean && make html', shell=True)
-
+        path = os.path.join("doc")
+        errno = subprocess.call('make clean && make html', shell=True,
+                                cwd=path)
         if errno != 0:
             raise SystemExit("Unable to generate docs!")
 

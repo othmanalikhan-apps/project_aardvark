@@ -24,7 +24,7 @@ The project represents a client-server desktop application to be used in restaur
 ## Running
 
 The project has been largely automated via the setup.py file. In summary, the
- custom added commands can be run directly from command line by entering:
+ main commands needed can be run directly from command line by entering:
 
     python setup.py runInstall
     python setup.py runClient <SERVER_SOCKET>

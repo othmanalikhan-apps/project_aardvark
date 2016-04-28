@@ -6,6 +6,14 @@ from django.contrib import admin
 class Food(models.Model):
     """
     Model that represents a food item on the restaurant menu.
+
+    Attributes:
+        :name:              The name of the food.
+        :type:              The type of the food limited to: 'starter',
+                            'main course', 'dessert' and 'beverage'.
+        :description:       The description of the food.
+        :price:             The price of the food in GBP.
+        :popularity:        The popularity of the food.
     """
     TYPES = (
         ("starter", "starter"),
@@ -29,6 +37,7 @@ class Food(models.Model):
     def __str__(self):
         """
         Overriding the built-in python convert to string magic method
+
         :return: The name of the food object.
         """
         return self.name
@@ -41,9 +50,6 @@ class Food(models.Model):
 
 
 class MenuAdmin(admin.ModelAdmin):
-    """
-    Class that changes some parameters to modify the admin interface.
-    """
     list_display = ["name", "type", "price"]
     list_per_page = 10
     list_filter = ["name", "type", "price"]

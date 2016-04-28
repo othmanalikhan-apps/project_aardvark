@@ -17,23 +17,36 @@ import sys
 import os
 import shlex
 
+
+
+import mock
+MOCK_MODULES = ['requests',
+                'PyQt5.QtWidgets',
+                'PyQt5.QtGui',
+                'PyQt5.QtWidgets',
+                'PyQt5.QtCore',
+                'aardvark.client.view',
+                'aardvark.client.model']
+# The Mock argument is needed otherwise Sphinx doesn't document
+# mocked inherited classes (mocking pyqt dependencies)
+for mod_name in MOCK_MODULES:
+    sys.modules[mod_name] = mock.Mock(QWidget=object) 
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-###############################################################################
 ################################ CHANGED ######################################
-###############################################################################
 
-relativeDir = os.path.join("..", "..", "src")
+relativeDir = os.path.join("..", "..", "aardvark")
+sys.path.append(os.path.abspath(os.path.join(relativeDir)))
 sys.path.append(os.path.abspath(os.path.join(relativeDir, 'client')))
-#sys.path.append(os.path.abspath(os.path.join(relativeDir, 'server')))
-#sys.path.append(os.path.abspath(os.path.join(relativeDir)))
-#print(sys.path)
-#print(os.getcwd())
+sys.path.append(os.path.abspath(os.path.join(relativeDir, 'server')))
 
-###############################################################################
-###############################################################################
+os.environ['DJANGO_SETTINGS_MODULE'] = 'server.settings'
+import django
+django.setup()
+
 ###############################################################################
 
 # -- General configuration ------------------------------------------------

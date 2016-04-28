@@ -23,11 +23,11 @@ from PyQt5.QtGui import (
     QFont, QPixmap, QIcon
 )
 from PyQt5.QtCore import (
-    Qt, QObject, pyqtSignal, QDate
+    Qt, pyqtSignal, QDate
 )
 
 
-class BookingView(QWidget, QObject):
+class BookingView(QWidget):
     """
     Responsible for displaying the booking tab.
     """
@@ -81,6 +81,7 @@ class BookingView(QWidget, QObject):
         """
         Creates a layout containing the booking button and label which
         displays the reference number.
+
         :return: The booking status layout.
         """
         layout = QHBoxLayout()
@@ -97,6 +98,7 @@ class BookingView(QWidget, QObject):
     def createCustomerDetailsLayout(self):
         """
         Creates a layout containing name, email and phone number fields
+
         :return: The customer details layout.
         """
         layout = QFormLayout()
@@ -120,7 +122,9 @@ class BookingView(QWidget, QObject):
     def createBookingDetailsLayout(self):
         """
         Creates a layout containing date, time and table fields.
-        The date field implements a calendar widget allowing user to select date from a calendar.
+        The date field implements a calendar widget allowing user to select
+        date from a calendar.
+
         :return: The booking details layout.
         """
         layout = QFormLayout()
@@ -148,6 +152,7 @@ class BookingView(QWidget, QObject):
     def createImageLayout(self):
         """
         Creates a layout containing an image with a black border
+
         :return: The layout of the image.
         """
         layout = QHBoxLayout()
@@ -166,6 +171,7 @@ class BookingView(QWidget, QObject):
     def createTitleLayout(self):
         """
         Creates a title displaying the number of the table.
+
         :return: The layout of the title.
         """
         layout = QHBoxLayout()
@@ -178,8 +184,9 @@ class BookingView(QWidget, QObject):
 
     def createBookingButton(self):
         """
-        Create a button that emits a clickedBookingButton signal when clicked on
-        :return:
+        Create a button that emits a clickedBookingButton signal when clicked.
+
+        :return: The booking button.
         """
         bookingButton = QPushButton("Make Booking")
         bookingButton.setFont(QFont("", 14, QFont.Bold, False))
@@ -201,6 +208,7 @@ class BookingView(QWidget, QObject):
         """
         Creates the label used for displaying the success of a booking
         and the reference number
+
         :return: The booking status label.
         """
         label = QLabel("Reference #329382")
@@ -211,6 +219,7 @@ class BookingView(QWidget, QObject):
     def setBookingStatusText(self, text):
         """
         Sets the message to be displayed after completing the booking.
+
         :param text: message to be displayed on the label.
         """
         self.bookingStatusLabel.setText(text)
@@ -234,7 +243,7 @@ class BookingView(QWidget, QObject):
         return self.timeField.currentText()
 
 
-class OrderView(QStackedWidget, QObject):
+class OrderView(QStackedWidget):
     """
     Responsible for displaying the order tab.
     """
@@ -271,12 +280,14 @@ class OrderView(QStackedWidget, QObject):
     def displayOrderScreen(self, tableNumber):
         """
         Sets the current widget to the order screen.
+
+        :param tableNumber: The number of the table.
         """
         self.setCurrentWidget(self.orderScroll)
         self.orderScreen.setTableNumber(tableNumber)
 
 
-class OrderScreen(QWidget, QObject):
+class OrderScreen(QWidget):
     """
     Displays all the items on the menu that can be ordered as buttons.
     Clicking on an item adds it to the ordered items section.
@@ -293,6 +304,8 @@ class OrderScreen(QWidget, QObject):
         types, followed by buttons representing the food.
         Also, the end of the screen contains food items queued into the
         order basket.
+
+        :param menu: An instantiated menu object.
         """
         super().__init__()
         mainLayout = QVBoxLayout()
@@ -345,6 +358,7 @@ class OrderScreen(QWidget, QObject):
         """
         Updates the ordered items section displaying their quantity
         and description.
+
         :param orderedItems: An ordered dictionary containing the names of
         the food items and their quantities.
         """
@@ -378,6 +392,7 @@ class OrderScreen(QWidget, QObject):
         """
         Create a label on top of a button so that we can have multi-line text
         on a button. By default, QPushButton displays text on a single line.
+
         :param: The text string to be displayed on the button.
         :return: The food button.
         """
@@ -405,6 +420,7 @@ class OrderScreen(QWidget, QObject):
         """
         Creates a subtract button corresponding to an item name in the
         ordered items basket.
+
         :param: The name of the food the button corresponds to.
         :return: The subtract button.
         """
@@ -422,7 +438,8 @@ class OrderScreen(QWidget, QObject):
         """
         Creates an add button corresponding to an item name in the
         ordered items basket.
-        :param: The name of the food the button corresponds to.
+
+        :param foodName: The name of the food the button corresponds to.
         :return: The add button.
         """
         button = QPushButton("+")
@@ -438,6 +455,7 @@ class OrderScreen(QWidget, QObject):
     def createSubmitButton(self):
         """
         Creates the submit button.
+
         :return: The submit button.
         """
         button = QPushButton("Submit Order")
@@ -449,6 +467,7 @@ class OrderScreen(QWidget, QObject):
     def createBackButton(self):
         """
         Creates a button that sends user to previous screen.
+
         :return: The back button as a QPushButton.
         """
         button = QPushButton("Back")
@@ -460,6 +479,7 @@ class OrderScreen(QWidget, QObject):
     def createTitle(self, text):
         """
         Creates a title for each type of food (e.g. starter, desserts, etc).
+
         :param text: The string text of the title.
         :return: The title as a QLabel.
         """
@@ -489,7 +509,7 @@ class OrderScreen(QWidget, QObject):
                                        .format(tableNumber))
 
 
-class PaymentView(QStackedWidget, QObject):
+class PaymentView(QStackedWidget):
     """
     Responsible for displaying the payment tab.
     """
@@ -497,6 +517,8 @@ class PaymentView(QStackedWidget, QObject):
     def __init__(self, tables):
         """
         Constructs the payment tab.
+
+        :param tables: The total number of tables in the restaurant.
         """
         super().__init__()
         # First widget where all tables are displayed.
@@ -523,12 +545,14 @@ class PaymentView(QStackedWidget, QObject):
     def displayPaymentScreen(self, tableNumber):
         """
         Sets the current widget to the payment screen.
+
+        :param tableNumber: The number of the table.
         """
         self.setCurrentWidget(self.paymentScreen)
         self.paymentScreen.setTableNumber(tableNumber)
 
 
-class PaymentScreen(QWidget, QObject):
+class PaymentScreen(QWidget):
     """
     Screen that displays the payment calculations options.
     """
@@ -580,6 +604,7 @@ class PaymentScreen(QWidget, QObject):
         Creates the layout where payment calculations occur.
         Namely, total bill, amount to pay, amount remaining, and change left
         fields are created.
+
         :return: The calculations layout.
         """
         calculationsLayout = QVBoxLayout()
@@ -599,6 +624,7 @@ class PaymentScreen(QWidget, QObject):
         Creates the layout where payment is sent.
         Namely, creates an input field to enter payment along with a button
         to send the payment.
+
         :return: The payment layout.
         """
         paymentLayout = QHBoxLayout()
@@ -613,6 +639,7 @@ class PaymentScreen(QWidget, QObject):
     def createTitle(self):
         """
         Creates a title displaying the table number.
+
         :return: The title as a QLabel.
         """
         title = QLabel("Payment: Table 1")
@@ -623,6 +650,7 @@ class PaymentScreen(QWidget, QObject):
     def createPayButton(self):
         """
         Creates a button to submit the payment.
+
         :return: The payment button as a QPushButton.
         """
         payButton = QPushButton("Pay")
@@ -633,6 +661,7 @@ class PaymentScreen(QWidget, QObject):
     def createBackButton(self):
         """
         Creates a button that sends user to previous screen.
+
         :return: The back button as a QPushButton.
         """
         backButton = QPushButton("Back")
@@ -645,6 +674,7 @@ class PaymentScreen(QWidget, QObject):
         """
         Creates a button that prints the receipt for the user in a pop up
         dialog.
+
         :return: The receipt button as a QPushButton.
         """
         printButton = QPushButton("Print Receipt")
@@ -656,6 +686,8 @@ class PaymentScreen(QWidget, QObject):
     def setTableNumber(self, tableNumber):
         """
         Sets the title of the screen to the given table number.
+
+        :param tableNumber: The number of the table.
         """
         self.title.setText("Payment: Table {}".format(tableNumber))
 
@@ -675,9 +707,16 @@ class PaymentScreen(QWidget, QObject):
 class InputField:
     """
     Used by the PaymentScreen to simplify GUI designing.
-    Combine a label and a line edit and stores their values..
+    Combines a label and a line edit and stores their values.
     """
+
     def __init__(self, labelText, inputValue):
+        """
+        Constructs the InputField object.
+
+        :param labelText: The name of the InputField.
+        :param inputValue: The value to inserted into the line edit.
+        """
         self.mainLayout = QHBoxLayout()
         self.mainLayout.setAlignment(Qt.AlignCenter)
 
@@ -717,7 +756,7 @@ class InputField:
         self.inputField.setText(str("00.00"))
 
 
-class TableScreen(QWidget, QObject):
+class TableScreen(QWidget):
     """
     Screen that displays the payment calculations options.
     """
@@ -726,6 +765,8 @@ class TableScreen(QWidget, QObject):
     def __init__(self, totalTables):
         """
         Table Screen that is displayed within the PaymentView widget
+
+        :param totalTables: The total number of tables in the restaurant.
         """
         super().__init__()
         mainLayout = QVBoxLayout()
@@ -762,6 +803,8 @@ class TableScreen(QWidget, QObject):
     def createTitle(self, text):
         """
         Creates a title with the given text.
+
+        :param text: The string text of the title.
         :return: The title as a QLabel.
         """
         title = QLabel(text)
@@ -771,6 +814,8 @@ class TableScreen(QWidget, QObject):
     def createTableButton(self, tableNumber):
         """
         Creates a 50x50 square button with the table number as the text
+
+        :param tableNumber: The number of the table.
         :return: The QPushButton with the table number on it.
         """
         button = QPushButton(str(tableNumber))
@@ -811,6 +856,8 @@ class MenuView(QWidget):
         """
         Creates a single food entry which consists of a name, description
         and a price.
+
+        :param food: An instantiated food object.
         :return: The layout of the food entry.
         """
         nameFont = QFont("", 10, QFont.Bold, True)
@@ -844,6 +891,9 @@ class MenuView(QWidget):
     def createTitleLayout(self, type):
         """
         Creates a title for each type of food (e.g. starter, desserts, etc).
+
+        :param type: The type of the food object as a string.
+        :return: The layout of the title.
         """
         title = QLabel(type.title())
         title.setFont(QFont("Arial", 20, QFont.Bold, False))
@@ -881,6 +931,7 @@ class HelpView(QWidget):
         """
         Creates a dict which maps section title to section text for
         each section.
+
         :return: A dictionary which maps section title to section text.
         """
         helpText = OrderedDict([
@@ -911,6 +962,7 @@ class HelpView(QWidget):
     def createTitle(self, text):
         """
         Creates a QLabel for the title.
+
         :param text: The text of the title.
         :return: The title QLabel.
         """
@@ -921,6 +973,7 @@ class HelpView(QWidget):
     def createDescription(self, text):
         """
         Creates a QLabel for the description.
+
         :param text: The text of the description.
         :return: The description QLabel.
         """
@@ -930,7 +983,7 @@ class HelpView(QWidget):
         return description
 
 
-class SplashView(QWidget, QObject):
+class SplashView(QWidget):
     """
     The first (starter) screen before entering the heart of the GUI.
     """
@@ -963,6 +1016,7 @@ class SplashView(QWidget, QObject):
     def createImage(self):
         """
         Loads and displays the startup image.
+
         :return: A QLabel image.
         """
         path = _getRelativePath('..', '..', 'asset', 'logo.png')
@@ -976,6 +1030,7 @@ class SplashView(QWidget, QObject):
     def createTitleLayout(self):
         """
         Creates a title label.
+
         :return: The title layout.
         """
         layout = QHBoxLayout()
@@ -988,6 +1043,7 @@ class SplashView(QWidget, QObject):
     def createSubtitleLayout(self):
         """
         Creates a subtitle label.
+
         :return: The subtitle layout.
         """
         layout = QHBoxLayout()
@@ -1000,6 +1056,7 @@ class SplashView(QWidget, QObject):
     def createContinueButton(self):
         """
         Creates the next button to proceed to the next screen.
+
         :return: The continue QPushButton.
         """
         button = QPushButton("Continue")
@@ -1017,6 +1074,9 @@ class MainView(QMainWindow):
     def __init__(self, menu, totalTables):
         """
         Main tab widget that constructs the client GUI.
+
+        :param menu: An instantiated menu object.
+        :param totalTables: The total number of tables in the restaurant.
         """
         super().__init__()
         self.setCentralWidget(QStackedWidget())
