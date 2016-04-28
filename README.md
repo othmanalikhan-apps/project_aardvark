@@ -27,7 +27,8 @@ The project has been largely automated via the setup.py file. In summary, the
  main commands needed can be run directly from command line by entering:
 
     python setup.py runInstall
-    python setup.py runClient <SERVER_SOCKET>
+    python setup.py runClient (First specify the server socket in settings.ini)
+    python setup.py runServer
     python setup.py runTest
     python setup.py runManualTest
     python setup.py runClean
@@ -58,7 +59,6 @@ This code is distributed under the MIT license. For further information, see the
 ## TODO
 
 * setup.py:
- * Add a run server command class to setup.py
  * Add the DEC10 commands for installing PyQt, Django, Sphinx
  
 * Django:

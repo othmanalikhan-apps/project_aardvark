@@ -71,13 +71,42 @@ class RunClientCommand(Command):
 
     def run(self):
         """
-        Semantically, runs 'python src/client/mainTab.py SERVER_SOCKET' on the
+        Semantically, runs 'python aardvark/client/controller.py' on the
         command line.
         """
         path = os.path.join("aardvark", "client", "controller.py")
         errno = subprocess.call([sys.executable, path])
         if errno != 0:
             raise SystemExit("Unable to run client GUI!")
+
+
+class RunServerCommand(Command):
+    """
+    A command class to runs the django server.
+    """
+    description = "runs django server"
+    user_options = []
+
+    def initialize_options(self):
+        """
+        Overriding a required abstract method.
+        """
+        pass
+
+    def finalize_options(self):
+        """
+        """
+        pass
+
+    def run(self):
+        """
+        Semantically, runs 'python aardvark/server/manage.py runserver'
+        on the command line.
+        """
+        path = os.path.join("aardvark", "server", "manage.py")
+        errno = subprocess.call([sys.executable, path, "runserver"])
+        if errno != 0:
+            raise SystemExit("Unable to run the django server!")
 
 
 class PyTestCommand(test):
@@ -289,6 +318,7 @@ setup(
     cmdclass={
         'runInstall': InstallInVirtualEnv,
         'runClient': RunClientCommand,
+        'runServer': RunServerCommand,
         'runTest': PyTestCommand,
         'runManualTest': ManualTestCommand,
         'runClean': CleanCommand,
