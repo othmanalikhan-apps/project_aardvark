@@ -32,7 +32,7 @@ class Food(models.Model):
                                 decimal_places=2,
                                 blank=False,
                                 default=Decimal("0.00"))
-    popularity = models.IntegerField(default=0)
+    popularity = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         """
@@ -46,7 +46,7 @@ class Food(models.Model):
         """
         Meta data for the food model.
         """
-        ordering = ["name"]
+        ordering = ("name",)
 
 
 class FoodAdmin(admin.ModelAdmin):

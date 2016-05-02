@@ -875,9 +875,9 @@ class MenuView(QWidget):
         descLabel.setSizePolicy(QSizePolicy.MinimumExpanding,
                                 QSizePolicy.Preferred)
 
-        priceTemplate = "{} GBP"
+        priceTemplate = "{:.2f} GBP"
         priceLabel = QLabel()
-        priceLabel.setText(priceTemplate.format(food.price))
+        priceLabel.setText(priceTemplate.format(float(food.price)))
         priceLabel.setAlignment(Qt.AlignRight)
         priceLabel.setFixedWidth(50)
 

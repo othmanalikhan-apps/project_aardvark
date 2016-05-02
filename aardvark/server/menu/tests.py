@@ -1,12 +1,12 @@
-from unittest.mock import patch, MagicMock, call
-from copy import deepcopy
-
 from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
 from django.core.exceptions import ValidationError
 
 from .models import Food
 from .views import updateMenu, sendMenu
+
+from unittest.mock import patch, MagicMock, call
+from copy import deepcopy
 
 import json
 
@@ -61,8 +61,8 @@ class FoodModelTests(TestCase):
         try:
             self.validFood.clean_fields()
         except Exception as e:
-            self.fail("Instantiating the supposed valid object raised the "
-                      "following error:\n{}".format(e))
+            self.fail("Instantiating the supposed valid object raised "
+                      "the following error:\n{}".format(e))
 
         with self.assertRaises(ValidationError):
             invalidName.clean_fields()
@@ -117,7 +117,8 @@ class ViewTests(TestCase):
     @patch("json.loads")
     def testReceiveMenu(self, mockJsonLoad, mockCreateMethod):
         """
-        Tests whether the server is able to receive a menu from the client.
+        Tests whether the server is able to receive a menu from the client
+        and handle it correctly.
         """
         mockRequest = MagicMock()
         mockRequest.method = "POST"

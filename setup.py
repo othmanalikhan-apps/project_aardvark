@@ -132,11 +132,11 @@ class PyTestCommand(test):
         """
         Runs both client and django server tests.
         """
-        print("Starting Client Tests:")
-        args = ["test"]
-        errno1 = pytest.main(args)
-        if errno1 != 0:
-            raise SystemExit("Unable to run client tests or they failed!")
+#        print("Starting Client Tests:")
+#        args = ["test"]
+#        errno1 = pytest.main(args)
+#        if errno1 != 0:
+#            raise SystemExit("Unable to run client tests or they failed!")
 
         print("\n\nStarting Server Tests:")
         serverTestFile = os.path.join(os.getcwd(),
@@ -313,7 +313,8 @@ setup(
     version='1.0',
     packages=find_packages(),
 
-    install_requires=['requests', 'Sphinx', 'Django', 'pytest'],
+    install_requires=['requests', 'Sphinx', 'Django',
+                      'pytest', "model_mommy"],
 
     cmdclass={
         'runInstall': InstallInVirtualEnv,
