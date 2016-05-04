@@ -7,22 +7,30 @@ class Table(models.Model):
     Model that represents a food item on the restaurant menu.
 
     Attributes:
-        :name:              The name of the food.
-        :type:              The type of the food limited to: "starter",
-                            "main course", "dessert" and "beverage".
-        :description:       The description of the food.
-        :price:             The price of the food in GBP.
-        :popularity:        The popularity of the food.
+        :number:        The number of the table.
+        :size:          The amount of chairs the table has.
+        :order:         The order associated with the table.
     """
-    number = models.PositiveIntegerField()
+    number = models.PositiveIntegerField(blank=False)
+    size = models.PositiveIntegerField(blank=False)
+    order = models.ForeignKey("order.Order",
+                              blank=True,
+                              null=True,
+                              on_delete=models.SET_NULL)
 
     def __str__(self):
         """
         Overriding the built-in python convert to string magic method
 
-        :return: The name of the customer.
+        :return: The number of the table.
         """
-        return "HELLO"
+        return str(self.number)
 
 class TableAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("number", "size",)
+    ordering = ("number",)
+    list_per_page = 25
+
+    search_fields = ("number", "size")
+    list_filter = ("number", "size")
+    readonly_fields = ("order",)

@@ -17,8 +17,8 @@ from collections import OrderedDict
 from PyQt5.QtWidgets import (
     QWidget, QPushButton, QLabel, QVBoxLayout, QHBoxLayout, QTabWidget,
     QStackedWidget, QMainWindow, QScrollArea, QSizePolicy, QLineEdit, QFrame,
-    QDesktopWidget, QFormLayout, QDateEdit, QComboBox
-)
+    QDesktopWidget, QFormLayout, QDateEdit, QComboBox,
+    QDialog, QMessageBox)
 from PyQt5.QtGui import (
     QFont, QPixmap, QIcon
 )
@@ -32,8 +32,12 @@ class BookingView(QWidget):
     Responsible for displaying the booking tab.
     """
 
-    # customer's name, email, phone and booking's date, time, table
-    clickedBookingButton = pyqtSignal(str, str, str, object, str, str)
+    # customer's name, email, phone and booking's date, time, table, size
+    clickedBookingButton = pyqtSignal(str, str, str, object, str, str, str)
+    clickedDateEdit = pyqtSignal()
+    clickedTimeField = pyqtSignal()
+    clickedTableField = pyqtSignal()
+    clickedSizeField = pyqtSignal()
 
     def __init__(self):
         """
@@ -121,7 +125,7 @@ class BookingView(QWidget):
 
     def createBookingDetailsLayout(self):
         """
-        Creates a layout containing date, time and table fields.
+        Creates a layout containing date, time, table and size fields.
         The date field implements a calendar widget allowing user to select
         date from a calendar.
 
@@ -136,16 +140,29 @@ class BookingView(QWidget):
         self.dateField.setMinimumDate(QDate.currentDate())
         self.dateField.setCalendarPopup(True)
         self.dateField.setMinimumWidth(100)
+        self.dateField.dateChanged.connect(lambda isClicked:
+                                           self.clickedDateEdit.emit())
         layout.addRow("Date: ", self.dateField)
 
         self.timeField = QComboBox()
-        self.timeField.addItems(["13:00", "Hammer", "Go", "19:00"])
         self.timeField.setMinimumWidth(100)
+        self.timeField.setDisabled(True)
+        self.timeField.activated.connect(lambda isClicked:
+                                         self.clickedTimeField.emit())
         layout.addRow("Time: ", self.timeField)
 
+        self.sizeField = QComboBox()
+        self.sizeField.setMinimumWidth(100)
+        self.sizeField.setDisabled(True)
+        self.sizeField.activated.connect(lambda isClicked:
+                                                   self.clickedSizeField.emit())
+        layout.addRow("Size: ", self.sizeField)
+
         self.tableField = QComboBox()
-        self.tableField.addItems(["1", "2", "99", "34"])
         self.tableField.setMinimumWidth(100)
+        self.tableField.setDisabled(True)
+        self.tableField.activated.connect(lambda isClicked:
+                                          self.clickedTableField.emit())
         layout.addRow("Table: ", self.tableField)
         return layout
 
@@ -199,7 +216,8 @@ class BookingView(QWidget):
             self.getCustomerPhone(),
             self.getBookingDate(),
             self.getBookingTime(),
-            self.getBookingTable()
+            self.getBookingTable(),
+            self.getBookingSize()
         ))
         bookingButton.setFixedSize(150, 50)
         return bookingButton
@@ -216,13 +234,51 @@ class BookingView(QWidget):
         label.setFont(QFont("", 16, QFont.Bold, True))
         return label
 
+    def showEmptyFieldsPopup(self):
+        """
+        Displays a message box that notifies the user to
+        fill in missing booking details.
+        """
+        text = "No field can be left undone..."
+        self._generatePopup(text).show()
+
+    def showInvalidEmailPopup(self):
+        """
+        Displays a message box that notifies the user to
+        rectify the incorrect email entered.
+        """
+        text = "The email you entered is... INVALID!"
+        self._generatePopup(text).show()
+
+    def showInvalidPhonePopup(self):
+        """
+        Displays a message box that notifies the user to
+        rectify the incorrect phone number entered.
+        """
+        text = "What kind of a phone number is that?"
+        self._generatePopup(text).show()
+
+    def _generatePopup(self, messageText):
+        """
+        Creates and initializes a standard QMessageBox.
+
+        :param messageText: The text that the message box should display.
+        :return: QMessageBox.
+        """
+        messageBox = QMessageBox(self)
+        messageBox.setIcon(QMessageBox.Information)
+        messageBox.setText(messageText)
+        messageBox.setWindowTitle("Error")
+        return messageBox
+
     def setBookingStatusText(self, text):
         """
         Sets the message to be displayed after completing the booking.
 
         :param text: message to be displayed on the label.
         """
-        self.bookingStatusLabel.setText(text)
+        template = "Reference: #{}"
+        self.bookingStatusLabel.setText(template.format(text))
 
     def getCustomerName(self):
         return self.nameField.text()
@@ -234,7 +290,7 @@ class BookingView(QWidget):
         return self.phoneField.text()
 
     def getBookingDate(self):
-        return self.dateField.date()
+        return self.dateField.date().toString("yyyy-MM-dd")
 
     def getBookingTable(self):
         return self.tableField.currentText()
@@ -242,6 +298,8 @@ class BookingView(QWidget):
     def getBookingTime(self):
         return self.timeField.currentText()
 
+    def getBookingSize(self):
+        return self.sizeField.currentText()
 
 class OrderView(QStackedWidget):
     """

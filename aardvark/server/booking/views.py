@@ -3,8 +3,7 @@ from .models import Booking
 from table.models import Table
 
 import json
-import datetime
-from copy import deepcopy
+from datetime import datetime
 
 
 def updateBooking(request):
@@ -21,61 +20,78 @@ def updateBooking(request):
                   "table": value6}}.
 
     :param request: A django request object.
-    :return: An empty HTTP response object.
+    :return: An HTTP response object containing the reference number.
     """
     refNum = {"reference": "ERROR"}
 
     if request.method == "POST":
         data = json.loads(request.body.decode("utf-8"))
-        data["table"] = Table.objects.get(number=data["table"])
-        booking = Booking.objects.create(**data)
+
+        booking = {"name": data["name"],
+                   "email": data["email"],
+                   "phone": data["phone"],
+                   "date": data["date"],
+                   "time": data["time"],
+                   "table": Table.objects.filter(number=data["table"])[0] }
+
+        booking = Booking.objects.create(**booking)
         refNum["reference"] = booking.reference
 
     return HttpResponse(json.dumps(refNum), content_type="application/json")
 
-def sendBookingSlots(request, bookingDate):
+def sendBookingSizes(request):
     """
-    Finds the booking slots available for all tables within the table
-    database and sends the results to the client. The data sent is a
-    dictionary that maps table numbers to a list of times that are two hours
-    apart (assumes that a booking slot is 2hrs long):
+    Searches the database by date and then time for all available table sizes
+    then returns the results as an HTTP object.
 
-    {"1": ["14:00", "16:00", "18:00"],
-     "2": [],
-     "3": ["1:00", "3:00"]}
-
-    :param bookingDate: The date to be searched for booking slots.
     :param request: A django request object.
-    :return: An empty HTTP response object.
+    :return: An HTTP response object containing the booking slots.
     """
-    freeSlots = {}
-    slots = []
-    timings = ["9:00", "11:00", "13:00", "15:00"]
-
-    # Generating datetime formatted timings
-    for timing in timings:
-        slots.append(datetime.datetime.strptime(timing, "%H:%M").time())
-
     if request.method == "GET":
-        # Setting all tables initially to be free at all times
-        for table in Table.objects.all():
-            freeSlots[table.number] = deepcopy(slots)
+        date = datetime.strptime(request.GET["date"], "%Y-%m-%d").date()
+        time = datetime.strptime(request.GET["time"], "%H:%M").time()
+        bookings = Booking.objects.filter(date=date, time=time)
 
-        # Searching all the bookings for the given date
-        d = datetime.datetime.strptime(bookingDate, '%Y-%m-%d')
-        bookings = Booking.objects.filter(date=d.date())
-
-        # Removing slots that are booked
+        bookedTables = []
         for booking in bookings:
-            freeSlots[booking.table.number].remove(booking.time)
+            bookedTables.append(booking.table)
 
-        # Converting datetime to str to allow serializable json
-        for key in freeSlots.keys():
-            freeSlots[key] = [slot.strftime("%H:%M") for slot in freeSlots[key]]
+        sizes = []
+        for table in Table.objects.all():
+            if table not in bookedTables:
+                sizes.append(str(table.size))
 
+        freeSlots = {"sizes": sizes}
         data = json.dumps(freeSlots)
         return HttpResponse(data, content_type="application/json")
 
+
+def sendBookingTables(request):
+    """
+    Searches the database by date, time and size for all available tables
+    then returns the results as an HTTP object.
+
+    :param request: A django request object.
+    :return: An HTTP response object containing the booking slots.
+    """
+    if request.method == "GET":
+        date = datetime.strptime(request.GET["date"], "%Y-%m-%d").date()
+        time = datetime.strptime(request.GET["time"], "%H:%M").time()
+        bookings = Booking.objects.filter(date=date, time=time)
+
+        bookedTables = []
+        for booking in bookings:
+            bookedTables.append(booking.table)
+
+        tables = []
+        size = int(request.GET["size"])
+        for table in Table.objects.all():
+            if table not in bookedTables and table.size == size:
+                tables.append(str(table.number))
+
+        freeSlots = {"tables": tables}
+        data = json.dumps(freeSlots)
+        return HttpResponse(data, content_type="application/json")
 
 
 

@@ -4,6 +4,7 @@ A set of unit tests for the model module in the client package.
 
 __docformat__ = 'reStructuredText'
 
+import json
 import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -83,6 +84,30 @@ class ClientTest(unittest.TestCase):
         self.mockMenu = MagicMock()
         self.mockMenu.items = [self.wood, self.bread, self.cardboard]
 
+    @patch("requests.post")
+    def testSendBookingDetails(self, mockRequestMethod):
+        """
+        Tests whether the client is able to send booking details in the
+        correct format.
+        """
+        bookingDetails = {"name": "sherlock",
+                          "email": "programmerK@gmail.com",
+                          "phone": "07472440699",
+                          "date":  "2016-04-03",
+                          "time":  "23:15",
+                          "table": "3",
+                          "size": "5"}
+
+        response = MagicMock()
+        response.status_code = 200
+        response.content = json.dumps(bookingDetails)
+        mockRequestMethod.return_value = response
+
+        response = self.client.sendBookingDetails(**bookingDetails)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, json.dumps(bookingDetails))
+
     @patch("requests.get")
     def testRequestTotalTables(self, mockRequestMethod):
         """
@@ -95,13 +120,46 @@ class ClientTest(unittest.TestCase):
 
         self.assertEqual(self.client.requestTotalTables().text, totalTables)
 
-    @patch("aardvark.client.model.Client.parseJsonMenu")
+    @patch("requests.get")
+    def testRequestAvailableSizes(self, mockRequestMethod):
+        """
+        Tests whether the client can fetch all the available table sizes for
+        booking from a mock object representing the server.
+        """
+        data = {"sizes": ["2", "3", "5"]}
+
+        response = MagicMock()
+        response.status_code = 200
+        response.content.decode.return_value = json.dumps(data)
+        mockRequestMethod.return_value = response
+
+        date, time = "2016-03-02", "09:00"
+        availableTimes = self.client.requestAvailableSizes(date, time)
+        self.assertEqual(availableTimes, data["sizes"])
+
+    @patch("requests.get")
+    def testRequestAvailableSizes(self, mockRequestMethod):
+        """
+        Tests whether the client can fetch all the available tables for
+        booking from a mock object representing the server.
+        """
+        data = {"tables": ["2", "3", "5"]}
+
+        response = MagicMock()
+        response.status_code = 200
+        response.content.decode.return_value = json.dumps(data)
+        mockRequestMethod.return_value = response
+
+        date, time, size = "2016-03-02", "09:00", "3"
+        availableTimes = self.client.requestAvailableTables(date, time, size)
+        self.assertEqual(availableTimes, data["tables"])
+
+
+    @patch("aardvark.client.model.Client._parseJsonMenu")
     @patch("aardvark.client.model.Menu")
     @patch("requests.get")
-    @patch("requests.codes")
     @patch("json.loads")
-    def testRequestMenu(self, _, mockCodes, mockRequestMethod,
-                        mockMenu, mockParse):
+    def testRequestMenu(self, _, mockRequestMethod, mockMenu, mockParse):
         """
         Tests whether the client can fetch the menu from a mock object
         representing the server.
@@ -112,19 +170,17 @@ class ClientTest(unittest.TestCase):
 
         mockRequestMethod.return_value = response
         mockParse.return_value = [self.mockFood, self.mockFood]
-        mockCodes.ok = 200
 
-        menuArgs = [call([self.mockFood, self.mockFood])]
-
+        menuArgs = call([self.mockFood, self.mockFood])
         self.client.requestMenu()
-        self.assertEqual(mockMenu.call_args_list, menuArgs)
+        self.assertEqual(mockMenu.call_args, menuArgs)
 
-        with self.assertRaises(ConnectionError):
-            response.status_code = 404
-            self.client.requestMenu()
+        response.status_code = 404
+        self.client.requestMenu()
+        self.assertEqual(mockMenu.call_args, "")
 
     @patch("aardvark.client.model.Food")
-    @patch("aardvark.client.model.Client.parseJsonFood")
+    @patch("aardvark.client.model.Client._parseJsonFood")
     def testParseJsonMenu(self, mockParse, mockFoodClass):
         """
         Tests whether data about menu in Json formatting can be parsed
@@ -132,7 +188,7 @@ class ClientTest(unittest.TestCase):
         """
         mockParse.return_value = self.foodInfo
         mockFoodClass.return_value = self.mockFood
-        foodList = self.client.parseJsonMenu(self.receivedJsonMenu)
+        foodList = self.client._parseJsonMenu(self.receivedJsonMenu)
 
         self.assertListEqual(foodList, [self.mockFood, self.mockFood])
 
@@ -141,7 +197,7 @@ class ClientTest(unittest.TestCase):
         Tests whether data about menu in Json formatting can be parsed
         correctly (so that it can later be fed into the Food constructor).
         """
-        foodData = self.client.parseJsonFood(self.jsonFood)
+        foodData = self.client._parseJsonFood(self.jsonFood)
         self.assertEqual(foodData, self.foodInfo)
 
     def testConvertFoodToJson(self):
@@ -149,7 +205,7 @@ class ClientTest(unittest.TestCase):
         Tests whether a food object (mocked) can be parsed to Json
         formatting correctly.
         """
-        self.assertDictEqual(self.client.convertFoodToJson(self.mockFood),
+        self.assertDictEqual(self.client._convertFoodToJson(self.mockFood),
                              self.jsonFood)
 
     @patch("requests.post")

@@ -41,7 +41,7 @@ class Booking(models.Model):
         :phone:         The phone number of the customer
         :date:          The date of the booking.
         :time:          The time of the booking.
-        :table:         The table numbers associated with the booking.
+        :table:         The table associated with the booking.
         :reference:     The reference number of the booking.
     """
     TIMES = (
@@ -52,7 +52,7 @@ class Booking(models.Model):
     )
 
     name = models.CharField(max_length=50, blank=False)
-    email = models.CharField(max_length=80, blank=False)
+    email = models.EmailField(blank=False)
     phone = models.CharField(max_length=13, blank=False)
 
     date = models.DateField(blank=False)

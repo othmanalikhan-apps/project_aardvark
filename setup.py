@@ -13,7 +13,6 @@ import os
 import subprocess
 import shutil
 import webbrowser
-import pytest
 
 import sys
 from sys import platform as _platform
@@ -132,11 +131,14 @@ class PyTestCommand(test):
         """
         Runs both client and django server tests.
         """
-#        print("Starting Client Tests:")
-#        args = ["test"]
-#        errno1 = pytest.main(args)
-#        if errno1 != 0:
-#            raise SystemExit("Unable to run client tests or they failed!")
+        # Not at top level to prevent initial dependency errors
+        import pytest
+
+        print("Starting Client Tests:")
+        args = ["test"]
+        errno1 = pytest.main(args)
+        if errno1 != 0:
+            raise SystemExit("Unable to run client tests or they failed!")
 
         print("\n\nStarting Server Tests:")
         serverTestFile = os.path.join(os.getcwd(),

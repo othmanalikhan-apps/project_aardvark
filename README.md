@@ -5,13 +5,14 @@ The project represents a client-server desktop application to be used in restaur
 
 ## Requirements
 
-* Python 3.4+
-* Additional Python Libraries:
- * Requests
- * Django
- * PyQt5
- * Sphinx
-
+* Python (3.4)
+* Additional Python Libraries (pip installable):
+ * requests (2.9.1)
+ * Django (1.9.2)
+ * Sphinx (1.3.5)
+ * model_mommy (1.2.6)
+* Additional Python Libraries (not pip installable unfortunately):
+ * PyQt5 (http://pyqt.sourceforge.net/Docs/PyQt5/installation.html)
 
 ## Key Features
 
@@ -58,11 +59,8 @@ This code is distributed under the MIT license. For further information, see the
 
 ## TODO
 
-* setup.py:
- * Add the DEC10 commands for installing PyQt, Django, Sphinx
- 
 * Django:
  * Upgrade URL mapping to more formal and proper mappings
 
 * Issue Tracker:
- * Report fixed GUI misalignment bug of description boxo
+ * Report fixed GUI misalignment bug of description box

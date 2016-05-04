@@ -4,11 +4,11 @@ Model module of the MVC pattern of the client GUI.
 As such, this module contains the core logic of the restaurant billing and
 order system.
 """
-import json
 
 __docformat__ = 'reStructuredText'
 
 import requests
+import json
 
 
 class Client:
@@ -24,14 +24,56 @@ class Client:
         :param serverSocket: The host URL to be communicated to.
         """
         tableToDir = {"table": "/table",
-                      "booking": "/booking",
                       "order": "/order",
                       "getMenu": "/menu/get",
-                      "sendMenu": "/menu/update"}
+                      "sendMenu": "/menu/update",
+                      "sendBooking": "/booking/update",
+                      "getBookingSizes": "/booking/sizes",
+                      "getBookingTables": "/booking/tables"}
 
         self.tableToURL = {}
         for table, dir in tableToDir.items():
             self.tableToURL[table] = "http://" + serverSocket + dir
+
+    def sendBookingDetails(self, name, email, phone, date, time, table, size):
+        """
+        Sends details of the booking to the server.
+
+        :param name: The name the booking should be under.
+        :param email: The email the booking should be under.
+        :param phone: The phone number to contact for booking notifications.
+        :param date: The date of the booking.
+        :param time: The time of the booking.
+        :param table: The table number booked.
+        :return: An http response object of the post request.
+        """
+        bookingDetails = {"name": name,
+                          "email": email,
+                          "phone": phone,
+                          "date": date,
+                          "time": time,
+                          "table": table,
+                          "size": size}
+
+        response = requests.post(self.tableToURL["sendBooking"],
+                                 data=json.dumps(bookingDetails))
+        return response
+
+    def sendMenu(self, menu):
+        """
+        Sends the server the menu in Json form.
+
+        :param: An instantiated menu object.
+        :return: An http response object of the post request.
+        """
+        JsonMenu = []
+
+        for food in menu.items:
+            JsonFood = self._convertFoodToJson(food)
+            JsonMenu.append({"fields": JsonFood})
+
+        response = requests.post(self.tableToURL["sendMenu"], data=JsonMenu)
+        return response
 
     def requestMenu(self):
         """
@@ -40,42 +82,58 @@ class Client:
         :return: An instantiated Menu object.
         """
         response = requests.get(self.tableToURL["getMenu"])
-        if response.status_code != requests.codes.ok:
-            raise ConnectionError("Unable to fetch menu from server!")
+        if response.status_code == requests.codes.ok:
+            jsonData = json.loads(response.content.decode("utf-8"))
+            parsedData = self._parseJsonMenu(jsonData)
+            return Menu(parsedData)
+        else:
+            return Menu()
 
-        jsonData = json.loads(response.content.decode("utf-8"))
-        parsedData = self.parseJsonMenu(jsonData)
-        menu = Menu(parsedData)
+    def requestAvailableTables(self, date, time, size):
+        """
+        Requests the available tables for booking for a given date, time and
+        size from the server.
 
-        return menu
+        :return: A list of available tables from the server.
+        """
+        query = {"date": date, "time": time, "size": size}
+        response = requests.get(self.tableToURL["getBookingTables"],
+                                params=query)
+
+        if response.status_code  == requests.codes.ok:
+            data = json.loads(response.content.decode("utf-8"))
+            return data["tables"]
+        else:
+            return []
+
+    def requestAvailableSizes(self, date, time):
+        """
+        Requests the available tables sizes for booking for a given date and
+        time from the server.
+
+        :return: A list of available sizes from the server.
+        """
+        query = {"date": date, "time": time}
+        response = requests.get(self.tableToURL["getBookingSizes"],
+                                params=query)
+
+        if response.status_code  == requests.codes.ok:
+            data = json.loads(response.content.decode("utf-8"))
+            return data["sizes"]
+        else:
+            return []
 
     def requestTotalTables(self):
         """
         Requests the total number of tables in the restaurant from the server.
 
-        :return: The total number of tables.
+        :return: The total number of tables in the restaurant.
         """
         query = {"search": "total_number"}
         response = requests.get(self.tableToURL["table"], params=query)
         return response
 
-    def sendMenu(self, menu):
-        """
-        Sends the server the menu in Json form.
-
-        :param: An instantiated menu object.
-        :return: Response code of the post request.
-        """
-        JsonMenu = []
-
-        for food in menu.items:
-            JsonFood = self.convertFoodToJson(food)
-            JsonMenu.append({"fields": JsonFood})
-
-        response = requests.post(self.tableToURL["sendMenu"], data=JsonMenu)
-        return response
-
-    def parseJsonMenu(self, JsonMenu):
+    def _parseJsonMenu(self, JsonMenu):
         """
         Parses Json input containing data about the menu to a suitable form
         that can be directly passed into the Menu constructor.
@@ -86,12 +144,12 @@ class Client:
         foodList = []
 
         for foodData in JsonMenu:
-            parsedData = self.parseJsonFood(foodData["fields"])
+            parsedData = self._parseJsonFood(foodData["fields"])
             foodList.append(Food(parsedData))
 
         return foodList
 
-    def parseJsonFood(self, JsonInput):
+    def _parseJsonFood(self, JsonInput):
         """
         Parses Json input containing data about the food to a suitable form
         that can be directly passed into the Food constructor.
@@ -106,7 +164,7 @@ class Client:
             foodData.append(JsonInput[attribute])
         return foodData
 
-    def convertFoodToJson(self, food):
+    def _convertFoodToJson(self, food):
         """
         Converts a supplied food object into Json format.
 

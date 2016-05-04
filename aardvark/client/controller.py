@@ -5,6 +5,8 @@ As such, this module controls the transition between GUI components.
 
 In summary, the navigation flow is splash screen ---> multiple tab windows.
 """
+import json
+import re
 
 __docformat__ = 'reStructuredText'
 
@@ -54,7 +56,7 @@ class MainController:
         self.splashViewController = SplashViewController(self.window.splash, self.window)
         self.paymentViewController = PaymentViewController(self.window.tabPayment)
         self.orderViewController = OrderViewController(self.window.tabOrder)
-        self.bookingViewController = BookingViewController(self.window.tabBook)
+        self.bookingViewController = BookingViewController(self.window.tabBook, self.client)
 
     def getApplicationStyle(self):
         """
@@ -210,7 +212,7 @@ class BookingViewController:
     Controller for the Order View widget.
     """
 
-    def __init__(self, bookingView):
+    def __init__(self, bookingView, client):
         """
         Constructor that mainly connects buttons to handlers.
 
@@ -219,14 +221,144 @@ class BookingViewController:
         self.bookingView = bookingView
         self.bookingView.clickedBookingButton.connect(self.handleBookingButtonClick)
 
-    def handleBookingButtonClick(self, customerName, customerPhone, customerEmail,
-                                            bookingDate, bookingTime, bookingTable):
-        print("Name: " + customerName)
-        print("Phone: " + customerPhone)
-        print("Email: " + customerEmail)
-        print("Date: " + bookingDate.toString())
-        print("Time: " + bookingTime)
-        print("Table: " + bookingTable)
+        self.bookingView.clickedDateEdit.connect(self.handleDateEditClick)
+        self.dateEditClickedTimes = 0
+
+        self.bookingView.clickedTimeField.connect(self.handleTimeFieldClick)
+        self.timeFieldClickedTimes = 0
+
+        self.bookingView.clickedSizeField.connect(self.handleSizeFieldClick)
+        self.sizeFieldClickedTimes = 0
+
+#        self.tableFieldClickedTimes = 0
+#        self.bookingView.clickedTableField.connect(self.handleTableFieldClick)
+
+        self.client = client
+
+    def handleBookingButtonClick(self,
+                                 customerName,
+                                 customerEmail,
+                                 customerPhone,
+                                 bookingDate,
+                                 bookingTime,
+                                 bookingTable,
+                                 bookingSize):
+        """
+        Event handler for clicking the booking button.
+        Sanitizes the user input then proceeds to send the data to the server.
+
+        :param customerName: name of the customer.
+        :param customerEmail: email of the customer.
+        :param customerPhone: phone number of the customer.
+        :param bookingDate: the booking date.
+        :param bookingTime: the booking time.
+        :param bookingTable: the booked table.
+        :param bookingSize: the amount of seats book.
+        """
+        bookingDetails = {"name": customerName.lower(),
+                          "email": customerEmail.lower(),
+                          "phone": customerPhone,
+                          "date": bookingDate,
+                          "time": bookingTime,
+                          "table": bookingTable,
+                          "size": bookingSize}
+
+        if not self._validateEmptyFields():
+            self.bookingView.showEmptyFieldsPopup()
+        elif not self._validateEmail():
+            self.bookingView.showInvalidEmailPopup()
+        elif not self._validatePhoneNumber():
+            self.bookingView.showInvalidPhonePopup()
+        else:
+            response = self.client.sendBookingDetails(**bookingDetails)
+            data = json.loads(response.content.decode("utf-8"))
+
+            self.bookingView.setBookingStatusText(data["reference"])
+            self.bookingView.tableField.clear()
+
+    def handleDateEditClick(self):
+        """
+        Event handler for clicking on the date widget.
+        Sets the size time widget to enabled to allow entering of input
+        and fetches data for that field form the server.
+        """
+        # Fixed unchanging times, or so it is assumed
+        TIMES = ["09:00", "11:00", "13:00", "15:00"]
+        self.bookingView.timeField.clear()
+        self.bookingView.timeField.addItems(TIMES)
+        self.bookingView.timeField.setDisabled(False)
+
+    def handleTimeFieldClick(self):
+        """
+        Event handler for clicking on the time field widget.
+        Sets the size field widget to enabled to allow entering of input
+        and fetches data for that field from the server.
+        """
+        date = self.bookingView.getBookingDate()
+        time = self.bookingView.getBookingTime()
+        sizes = self.client.requestAvailableSizes(date, time)
+        self.bookingView.sizeField.clear()
+        self.bookingView.sizeField.addItems(sizes)
+        self.bookingView.sizeField.setDisabled(False)
+
+        self.bookingView.tableField.setDisabled(True)
+        self.bookingView.tableField.clear()
+
+    def handleSizeFieldClick(self):
+        """
+        Event handler for clicking on the size field widget.
+        Sets the time field widget to enabled to allow entering of input
+        and fetches data for that field from the server.
+        """
+        date = self.bookingView.getBookingDate()
+        time = self.bookingView.getBookingTime()
+        size = self.bookingView.getBookingSize()
+        tables = self.client.requestAvailableTables(date, time, size)
+        self.bookingView.tableField.clear()
+        self.bookingView.tableField.addItems(tables)
+        self.bookingView.tableField.setDisabled(False)
+
+    def _validateEmail(self):
+        """
+        Checks whether the supplied email is valid.
+
+        :return: boolean true or false.
+        """
+        EMAIL_REGEX = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+"
+                                 r"\.[a-zA-Z0-9-.]+$)")
+        isEmailValid =  re.match(EMAIL_REGEX,
+                                 self.bookingView.getCustomerEmail())
+        return isEmailValid
+
+    def _validatePhoneNumber(self):
+        """
+        Checks whether the supplied number is valid.
+
+        :return: boolean true or false.
+        """
+        NUMBER_REGEX = re.compile(r"^[0-9]{7,12}$")
+        isNumberValid =  re.match(NUMBER_REGEX,
+                                  self.bookingView.getCustomerPhone())
+        return isNumberValid
+
+    def _validateEmptyFields(self):
+        """
+        Checks whether all fields are non empty.
+
+        :return: boolean true or false.
+        """
+        validationFields = [self.bookingView.getCustomerName(),
+                            self.bookingView.getCustomerEmail(),
+                            self.bookingView.getCustomerPhone(),
+                            self.bookingView.getBookingDate(),
+                            self.bookingView.getBookingTime(),
+                            self.bookingView.getBookingSize(),
+                            self.bookingView.getBookingTable()]
+
+        for field in validationFields:
+            if not field:
+                return False
+        return True
 
 
 class PaymentViewController:
