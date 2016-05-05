@@ -8,6 +8,8 @@ In summary, the navigation flow is splash screen ---> multiple tab windows.
 import json
 import re
 
+import requests
+
 __docformat__ = 'reStructuredText'
 
 import os
@@ -53,10 +55,14 @@ class MainController:
         """
         Initialises the controller for each of the views
         """
-        self.splashViewController = SplashViewController(self.window.splash, self.window)
-        self.paymentViewController = PaymentViewController(self.window.tabPayment)
-        self.orderViewController = OrderViewController(self.window.tabOrder)
-        self.bookingViewController = BookingViewController(self.window.tabBook, self.client)
+        self.splashViewController = \
+            SplashViewController(self.window.splash, self.window)
+        self.paymentViewController = \
+            PaymentViewController( self.window.tabPayment, self.client)
+        self.orderViewController = \
+            OrderViewController(self.window.tabOrder, self.client)
+        self.bookingViewController = \
+            BookingViewController(self.window.tabBook, self.client)
 
     def getApplicationStyle(self):
         """
@@ -129,11 +135,13 @@ class OrderViewController:
     Controller for the Order View widget.
     """
 
-    def __init__(self, orderView):
+    def __init__(self, orderView, client):
         """
         Constructor that mainly connects buttons to handlers.
 
         :param orderView: An instantiated OrderView object.
+        :param client: The client that deals with the communicating to the
+        server.
         """
         self.orderedItems = collections.OrderedDict()
         self.orderView = orderView
@@ -143,6 +151,7 @@ class OrderViewController:
         self.orderView.orderScreen.clickedAddButton.connect(self.handleAddButton)
         self.orderView.orderScreen.clickedBackButton.connect( self.handleBackButtonClick)
         self.orderView.orderScreen.clickedSubmitButton.connect(self.handleSubmitButtonClick)
+        self.client = client
 
     def handleFoodButtonClick(self, foodName):
         """
@@ -169,9 +178,17 @@ class OrderViewController:
 
     def handleSubmitButtonClick(self):
         """
-        Event handler for that
+        Event handler that submits all items in the order items basket to the
+        server.
         """
-        print("You've clicked the submit button")
+        response = self.client.submitOrder(self.orderedItems)
+        if response.status_code == requests.codes.ok:
+            self.orderedItems = {}
+            self.orderView.orderScreen.displayOrderedItems(self.orderedItems)
+            self.orderView.orderScreen.showSuccessPopup()
+        else:
+            self.orderView.orderScreen.showFailPopup()
+
 
     def handleBackButtonClick(self):
         """
@@ -217,6 +234,8 @@ class BookingViewController:
         Constructor that mainly connects buttons to handlers.
 
         :param bookingView: An instantiated BookingView object.
+        :param client: The client that deals with the communicating to the
+        server.
         """
         self.bookingView = bookingView
         self.bookingView.clickedBookingButton.connect(self.handleBookingButtonClick)
@@ -366,7 +385,7 @@ class PaymentViewController:
     Controller for the Payment View widget.
     """
 
-    def __init__(self, paymentView):
+    def __init__(self, paymentView, client):
         """
         Constructor that mainly connects buttons to handlers.
 
@@ -377,11 +396,17 @@ class PaymentViewController:
         self.paymentView.paymentScreen.clickedBackButton.connect(self.handleBackButtonClick)
         self.paymentView.paymentScreen.clickedPayButton.connect(self.handlePayButtonClick)
         self.paymentView.paymentScreen.clickedPrintButton.connect(self.handlePrintButtonClick)
+        self.client = client
 
     def handlePrintButtonClick(self):
         print("You've clicked the print button")
 
     def handlePayButtonClick(self):
+        """
+        Event handler that sends the value in the payment field to the server.
+        """
+        paid = self.paymentView.paymentScreen.paymentField.getValue()
+#        self.client.sendPayment(paid)
         print("You've clicked the pay button")
 
     def handleBackButtonClick(self):
@@ -398,7 +423,21 @@ class PaymentViewController:
 
         :param tableNumber: The number of the table.
         """
+        fieldFormat = "{:.2f}"
+
         self.paymentView.displayPaymentScreen(tableNumber)
+
+        # Fetches the total bill from the server and then displays it
+        total = 111
+#        total = float(self.client.requestTotalBill(tableNumber))
+        totalFormatted = fieldFormat.format(total)
+        self.paymentView.paymentScreen.setTotalFieldValue(totalFormatted)
+
+        # Calculates the change locally and then displays it
+        paid = float(self.paymentView.paymentScreen.paidField.getValue())
+        change = paid - total
+        changeFormatted = fieldFormat.format(change)
+        self.paymentView.paymentScreen.setChangeFieldValue(changeFormatted)
 
 
 def _getRelativePath(*args):

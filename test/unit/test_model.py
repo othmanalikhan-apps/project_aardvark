@@ -85,6 +85,27 @@ class ClientTest(unittest.TestCase):
         self.mockMenu.items = [self.wood, self.bread, self.cardboard]
 
     @patch("requests.post")
+    def testSubmitOrder(self, mockRequestMethod):
+        """
+        Tests whether the client is able to submit ordered food items
+        in the correct format.
+        """
+        orderedItems = {"banana": 3,
+                        "orange": 10,
+                        "carrot": 1,
+                        "human":  42}
+
+        response = MagicMock()
+        response.status_code = 200
+        response.content = json.dumps(orderedItems)
+        mockRequestMethod.return_value = response
+
+        response = self.client.submitOrder(orderedItems)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, json.dumps(orderedItems))
+
+    @patch("requests.post")
     def testSendBookingDetails(self, mockRequestMethod):
         """
         Tests whether the client is able to send booking details in the
@@ -153,7 +174,6 @@ class ClientTest(unittest.TestCase):
         date, time, size = "2016-03-02", "09:00", "3"
         availableTimes = self.client.requestAvailableTables(date, time, size)
         self.assertEqual(availableTimes, data["tables"])
-
 
     @patch("aardvark.client.model.Client._parseJsonMenu")
     @patch("aardvark.client.model.Menu")

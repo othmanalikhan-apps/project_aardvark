@@ -29,11 +29,24 @@ class Client:
                       "sendMenu": "/menu/update",
                       "sendBooking": "/booking/update",
                       "getBookingSizes": "/booking/sizes",
-                      "getBookingTables": "/booking/tables"}
+                      "getBookingTables": "/booking/tables",
+                      "submitOrder": "/order/submit"}
 
         self.tableToURL = {}
         for table, dir in tableToDir.items():
             self.tableToURL[table] = "http://" + serverSocket + dir
+
+    def submitOrder(self, orderedItems):
+        """
+        Sends details of the booking to the server.
+
+        :param orderedItems: A sorted dictionary that maps order name to
+        quantity.
+        :return: An http response object of the post request.
+        """
+        response = requests.post(self.tableToURL["submitOrder"],
+                                 data=json.dumps(orderedItems))
+        return response
 
     def sendBookingDetails(self, name, email, phone, date, time, table, size):
         """

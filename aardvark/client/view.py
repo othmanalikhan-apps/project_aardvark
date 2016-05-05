@@ -301,6 +301,7 @@ class BookingView(QWidget):
     def getBookingSize(self):
         return self.sizeField.currentText()
 
+
 class OrderView(QStackedWidget):
     """
     Responsible for displaying the order tab.
@@ -566,6 +567,35 @@ class OrderScreen(QWidget):
         self.orderedItemsTitle.setText("Ordered Items: Table {}"
                                        .format(tableNumber))
 
+    def showFailPopup(self):
+        """
+        Displays a message box that notifies the user that the order has not
+        been submitted successfully.
+        """
+        text = "Ordered could not be submitted successfully!"
+        self._generatePopup(text).show()
+
+    def showSuccessPopup(self):
+        """
+        Displays a message box that notifies the user that the order has been
+        submitted successfully.
+        """
+        text = "Ordered submitted successfully!"
+        self._generatePopup(text).show()
+
+    def _generatePopup(self, messageText):
+        """
+        Creates and initializes a standard QMessageBox.
+
+        :param messageText: The text that the message box should display.
+        :return: QMessageBox.
+        """
+        messageBox = QMessageBox(self)
+        messageBox.setIcon(QMessageBox.Information)
+        messageBox.setText(messageText)
+        messageBox.setWindowTitle("Fabulous!")
+        return messageBox
+
 
 class PaymentView(QStackedWidget):
     """
@@ -633,6 +663,7 @@ class PaymentScreen(QWidget):
         self.title = self.createTitle()
         mainLayout.addWidget(self.title)
         mainLayout.addSpacing(20)
+        mainLayout.addStretch(1)
 
         # Create payment group and add it to main layout
         paymentLayout = self.createPaymentLayout()
@@ -642,6 +673,7 @@ class PaymentScreen(QWidget):
         calculationsLayout = self.createCalculationsLayout()
         mainLayout.addLayout(calculationsLayout)
         mainLayout.addSpacing(20)
+        mainLayout.addStretch(1)
 
         # Create print receipt button and add it to main layout
         self.printButton = self.createPrintButton()
@@ -668,11 +700,9 @@ class PaymentScreen(QWidget):
         calculationsLayout = QVBoxLayout()
         self.totalField = InputField("Total:", "00.00")
         self.paidField = InputField("Paid:", "00.00")
-        self.remainingField = InputField("Remaining:", "00.00")
         self.changeField = InputField("Change:", "00.00")
         calculationsLayout.addLayout(self.totalField.mainLayout)
         calculationsLayout.addLayout(self.paidField.mainLayout)
-        calculationsLayout.addLayout(self.remainingField.mainLayout)
         calculationsLayout.addLayout(self.changeField.mainLayout)
         calculationsLayout.addStretch(1)
         return calculationsLayout
@@ -687,6 +717,7 @@ class PaymentScreen(QWidget):
         """
         paymentLayout = QHBoxLayout()
         self.paymentField = InputField(" ", "00.00")
+        self.paymentField.inputField.setReadOnly(False)
         self.payButton = self.createPayButton()
         paymentLayout.addStretch(2)
         paymentLayout.addLayout(self.paymentField.mainLayout)
@@ -723,7 +754,7 @@ class PaymentScreen(QWidget):
         :return: The back button as a QPushButton.
         """
         backButton = QPushButton("Back")
-        backButton.setMaximumWidth(400)
+        backButton.setMaximumWidth(500)
         backButton.setFont(QFont("", 8, QFont.Bold, True))
         backButton.clicked.connect(lambda isClicked: self.clickedBackButton.emit())
         return backButton
@@ -738,7 +769,7 @@ class PaymentScreen(QWidget):
         printButton = QPushButton("Print Receipt")
         printButton.setFont(QFont("", 20, QFont.Bold, True))
         printButton.clicked.connect(lambda isClicked: self.clickedPrintButton.emit())
-        printButton.setFixedSize(400, 100)
+        printButton.setFixedSize(500, 100)
         return printButton
 
     def setTableNumber(self, tableNumber):
@@ -754,9 +785,6 @@ class PaymentScreen(QWidget):
 
     def setPaidFieldValue(self, value):
         self.paidField.setValue(value)
-
-    def setRemainingFieldValue(self, value):
-        self.remainingField.setValue(value)
 
     def setChangeFieldValue(self, value):
         self.changeField.setValue(value)
@@ -797,6 +825,7 @@ class InputField:
         self.inputField = QLineEdit(inputValue)
         self.inputField.setMaximumWidth(200)
         self.inputField.setFont(QFont("", 8, QFont.Bold, False))
+        self.inputField.setReadOnly(True)
         self.mainLayout.addWidget(self.inputField)
 
         self.mainLayout.addStretch(1)
