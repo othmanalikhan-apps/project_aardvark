@@ -153,19 +153,6 @@ class OrderViewController:
         self.orderView.orderScreen.clickedSubmitButton.connect(self.handleSubmitButtonClick)
         self.client = client
 
-    def handleFoodButtonClick(self, foodName):
-        """
-        Event handler that adds items to the ordered items and displays
-        the updated ordered items on the screen.
-
-        :param foodName: The name of the food.
-        """
-        if foodName in self.orderedItems:
-            self.orderedItems[foodName] += 1
-        else:
-            self.orderedItems[foodName] = 1
-
-        self.orderView.orderScreen.displayOrderedItems(self.orderedItems)
 
     def handleTableButtonClick(self, tableNumber):
         """
@@ -174,14 +161,15 @@ class OrderViewController:
 
         :param tableNumber: The number of the table.
         """
-        self.orderView.displayOrderScreen(tableNumber)
+        self.tableNumber = tableNumber
+        self.orderView.displayOrderScreen(self.tableNumber)
 
     def handleSubmitButtonClick(self):
         """
         Event handler that submits all items in the order items basket to the
         server.
         """
-        response = self.client.submitOrder(self.orderedItems)
+        response = self.client.submitOrder(self.orderedItems, self.tableNumber)
         if response.status_code == requests.codes.ok:
             self.orderedItems = {}
             self.orderView.orderScreen.displayOrderedItems(self.orderedItems)
@@ -196,6 +184,20 @@ class OrderViewController:
         table screen.
         """
         self.orderView.displayTableScreen()
+
+    def handleFoodButtonClick(self, foodName):
+        """
+        Event handler that adds items to the ordered items and displays
+        the updated ordered items on the screen.
+
+        :param foodName: The name of the food.
+        """
+        if foodName in self.orderedItems:
+            self.orderedItems[foodName] += 1
+        else:
+            self.orderedItems[foodName] = 1
+
+        self.orderView.orderScreen.displayOrderedItems(self.orderedItems)
 
     def handleSubtractButton(self, foodName):
         """

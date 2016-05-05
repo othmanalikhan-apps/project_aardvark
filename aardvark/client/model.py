@@ -36,7 +36,7 @@ class Client:
         for table, dir in tableToDir.items():
             self.tableToURL[table] = "http://" + serverSocket + dir
 
-    def submitOrder(self, orderedItems):
+    def submitOrder(self, orderedItems, tableNum):
         """
         Sends details of the booking to the server.
 
@@ -44,8 +44,17 @@ class Client:
         quantity.
         :return: An http response object of the post request.
         """
+        data = {"order": []}
+
+        for name, quantity in orderedItems.items():
+            order = {"name": name,
+                     "quantity": quantity,
+                     "table": tableNum}
+
+            data["order"].append(order)
+
         response = requests.post(self.tableToURL["submitOrder"],
-                                 data=json.dumps(orderedItems))
+                                 data=json.dumps(data))
         return response
 
     def sendBookingDetails(self, name, email, phone, date, time, table, size):
