@@ -428,8 +428,7 @@ class PaymentViewController:
         self.paymentView.displayPaymentScreen(tableNumber)
 
         # Fetches the total bill from the server and then displays it
-        total = 111
-#        total = float(self.client.requestTotalBill(tableNumber))
+        total = float(self.client.requestTotalBill(tableNumber))
         totalFormatted = fieldFormat.format(total)
         self.paymentView.paymentScreen.setTotalFieldValue(totalFormatted)
 

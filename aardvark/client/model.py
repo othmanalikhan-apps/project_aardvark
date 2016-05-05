@@ -29,7 +29,8 @@ class Client:
                       "sendBooking": "/booking/update",
                       "getBookingSizes": "/booking/sizes",
                       "getBookingTables": "/booking/tables",
-                      "submitOrder": "/order/submit"}
+                      "submitOrder": "/order/submit",
+                      "getBill": "/order/bill"}
 
         self.tableToURL = {}
         for table, dir in tableToDir.items():
@@ -155,6 +156,19 @@ class Client:
         if response.status_code == requests.codes.ok:
             data = json.loads(response.content.decode("utf-8"))
             return data["tables"]
+
+    def requestTotalBill(self, tableNumber):
+        """
+        Requests the total bill for a given table from the server.
+
+        :return: A list of all the table numbers.
+        """
+        data = {"table": tableNumber}
+        response = requests.get(self.tableToURL["getBill"], params=data)
+
+        if response.status_code == requests.codes.ok:
+            data = json.loads(response.content.decode("utf-8"))
+            return data["bill"]
 
     def _parseJsonMenu(self, JsonMenu):
         """

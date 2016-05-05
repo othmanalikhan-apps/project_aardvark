@@ -151,6 +151,20 @@ class ClientTest(unittest.TestCase):
         self.assertEqual(self.client.requestTotalTables(), tables["tables"])
 
     @patch("requests.get")
+    def testRequestTotalBill(self, mockRequestMethod):
+        """
+        Tests whether the client can fetch the bill from a mock object
+        representing the server.
+        """
+        tables = {"bill": 33.15}
+        tableNum = 3
+        response = MagicMock()
+        response.status_code = requests.codes.ok
+        response.content.decode.return_value = json.dumps(tables)
+        mockRequestMethod.return_value = response
+        self.assertEqual(self.client.requestTotalBill(tableNum), tables["bill"])
+
+    @patch("requests.get")
     def testRequestAvailableSizes(self, mockRequestMethod):
         """
         Tests whether the client can fetch all the available table sizes for
