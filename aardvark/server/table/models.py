@@ -16,7 +16,8 @@ class Table(models.Model):
     order = models.ForeignKey("order.Order",
                               blank=True,
                               null=True,
-                              on_delete=models.SET_NULL)
+                              on_delete=models.SET_NULL,
+                              related_name="ordered_table")
 
     def __str__(self):
         """

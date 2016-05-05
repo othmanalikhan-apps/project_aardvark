@@ -1,6 +1,3 @@
-import datetime
-import json
-
 from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
 from django.core.exceptions import ValidationError
@@ -13,6 +10,8 @@ from unittest.mock import patch, MagicMock, call
 from model_mommy import mommy
 from copy import deepcopy
 
+import datetime
+import json
 
 ################################ UNITTESTS TESTS ###############################
 
@@ -155,7 +154,7 @@ class IntegrationTests(TestCase):
 
     def setUp(self):
         """
-        Declares booking data.
+        Declares booking data and creates some entries in a mock database.
         """
         self.bookingData = {"name": "watson",
                             "phone": "07472440699",

@@ -70,7 +70,7 @@ class Booking(models.Model):
 
         :return: The name of the customer.
         """
-        return self.name
+        return str(self.name)
 
     class Meta:
         """
