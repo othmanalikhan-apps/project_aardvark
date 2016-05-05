@@ -91,19 +91,27 @@ class ClientTest(unittest.TestCase):
         in the correct format.
         """
         orderedItems = {"banana": 3,
-                        "orange": 10,
-                        "carrot": 1,
-                        "human":  42}
+                        "orange": 10}
+        tableNum = 3
+
+        content = {"order": [{"name": "banana",
+                              "quantity": 3,
+                              "table": tableNum},
+
+                             {"name": "orange",
+                              "quantity": 10,
+                              "table": tableNum}]}
 
         response = MagicMock()
         response.status_code = 200
-        response.content = json.dumps(orderedItems)
+        response.content = json.dumps(content)
         mockRequestMethod.return_value = response
 
-        response = self.client.submitOrder(orderedItems)
+        response = self.client.submitOrder(orderedItems, tableNum)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, json.dumps(orderedItems))
+        self.assertEqual(response.content, json.dumps(content))
+
 
     @patch("requests.post")
     def testSendBookingDetails(self, mockRequestMethod):
