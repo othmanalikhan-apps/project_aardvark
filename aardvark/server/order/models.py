@@ -12,15 +12,17 @@ class Order(models.Model):
                         with the order.
         :quantity:      The amount of food ordered.
     """
-    table = models.OneToOneField("table.Table",
-                                 blank=False,
-                                 null=True,
-                                 on_delete=models.SET_NULL,
-                                 related_name="table_ordered")
-    food = models.OneToOneField("menu.Food",
-                                 blank=False,
-                                 null=True,
-                                 on_delete=models.SET_NULL)
+    table = models.ForeignKey("table.Table",
+                              blank=False,
+                              null=True,
+                              on_delete=models.SET_NULL,
+                              related_name="TABLE_ORDERED",
+                              unique=False)
+    food = models.ForeignKey("menu.Food",
+                             blank=False,
+                             null=True,
+                             on_delete=models.SET_NULL,
+                             unique=False)
     quantity = models.PositiveIntegerField()
 
     def __str__(self):

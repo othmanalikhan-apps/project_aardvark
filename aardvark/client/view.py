@@ -849,11 +849,11 @@ class TableScreen(QWidget):
     """
     clickedTableButton = pyqtSignal(int)
 
-    def __init__(self, totalTables):
+    def __init__(self, tables):
         """
         Table Screen that is displayed within the PaymentView widget
 
-        :param totalTables: The total number of tables in the restaurant.
+        :param tables: The total number of tables in the restaurant.
         """
         super().__init__()
         mainLayout = QVBoxLayout()
@@ -862,30 +862,37 @@ class TableScreen(QWidget):
         # Create title and add it to layout
         title = self.createTitle("Choose Table:")
         mainLayout.addWidget(title)
-        mainLayout.addSpacing(20)
         mainLayout.addStretch(1)
 
         # Calculate total rows required for all buttons
         tablesPerRow = 5
-        remainder = totalTables % tablesPerRow
-        totalRows = totalTables // tablesPerRow
+        remainder = len(tables) % tablesPerRow
+        totalRows = len(tables) // tablesPerRow
 
         # Add extra tables to complete row
         if remainder != 0:
             totalRows += 1
 
-        # Create table buttons numbered from 1 to totalTables
+        # Create table buttons numbered from 1 to tables
         tableNumber = 0
         for row in range(totalRows):
             rowLayout = QHBoxLayout()
             rowLayout.addStretch(1)
-            for col in range(1, tablesPerRow + 1):
-                tableNumber += 1
-                tableButton = self.createTableButton(tableNumber)
+            for col in range(tablesPerRow):
+
+                # Adds a normal button if possible otherwise a blank button
+                try:
+                    tableButton = self.createTableButton(tables[tableNumber])
+                    tableNumber += 1
+                except IndexError:
+                    tableButton = self.createBlankButton()
+
                 rowLayout.addWidget(tableButton)
                 rowLayout.addStretch(1)
             rowLayout.addStretch(1)
             mainLayout.addLayout(rowLayout)
+            mainLayout.addSpacing(20)
+        mainLayout.addStretch(1)
 
     def createTitle(self, text):
         """
@@ -912,6 +919,18 @@ class TableScreen(QWidget):
         # text as the argument
         button.clicked.connect(lambda isClicked, tableNumber=button.text():
                                self.clickedTableButton.emit(int(tableNumber)))
+        return button
+
+    def createBlankButton(self):
+        """
+        Creates a 50x50 square button blank button that doesn't do anything.
+        Used to deal with GUI spacing issues.
+
+        :return: The QPushButton with the table number on it.
+        """
+        button = QPushButton()
+        button.setFixedSize(50, 50)
+        button.setDisabled(True)
         return button
 
 

@@ -28,8 +28,8 @@ def updateOrder(request):
 
         for order in data["order"]:
             table = Table.objects.get(number=order["table"])
-            food = Food.objects.get(name=order["food"])
-            quantity = order["quantity"]
+            food = Food.objects.get(name=order["food"].lower())
+            quantity = int(order["quantity"])
             Order.objects.create(table=table, food=food, quantity=quantity)
 
     return HttpResponse()

@@ -23,8 +23,7 @@ class Client:
 
         :param serverSocket: The host URL to be communicated to.
         """
-        tableToDir = {"table": "/table",
-                      "order": "/order",
+        tableToDir = {"getTables": "/table/total",
                       "getMenu": "/menu/get",
                       "sendMenu": "/menu/update",
                       "sendBooking": "/booking/update",
@@ -46,8 +45,8 @@ class Client:
         """
         data = {"order": []}
 
-        for name, quantity in orderedItems.items():
-            order = {"name": name,
+        for food, quantity in orderedItems.items():
+            order = {"food": food,
                      "quantity": quantity,
                      "table": tableNum}
 
@@ -147,13 +146,15 @@ class Client:
 
     def requestTotalTables(self):
         """
-        Requests the total number of tables in the restaurant from the server.
+        Requests all tables that the restaurant has from the server.
 
-        :return: The total number of tables in the restaurant.
+        :return: A list of all the table numbers.
         """
-        query = {"search": "total_number"}
-        response = requests.get(self.tableToURL["table"], params=query)
-        return response
+        response = requests.get(self.tableToURL["getTables"])
+
+        if response.status_code == requests.codes.ok:
+            data = json.loads(response.content.decode("utf-8"))
+            return data["tables"]
 
     def _parseJsonMenu(self, JsonMenu):
         """

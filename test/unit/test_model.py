@@ -6,6 +6,7 @@ __docformat__ = 'reStructuredText'
 
 import json
 import unittest
+import requests
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from unittest.mock import call
@@ -112,7 +113,6 @@ class ClientTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, json.dumps(content))
 
-
     @patch("requests.post")
     def testSendBookingDetails(self, mockRequestMethod):
         """
@@ -143,11 +143,12 @@ class ClientTest(unittest.TestCase):
         Tests whether the client can fetch the total number of tables from a
         mock object representing the server.
         """
+        tables = {"tables": [1, 33, 422]}
         response = MagicMock()
-        response.text = totalTables = 50
+        response.status_code = requests.codes.ok
+        response.content.decode.return_value = json.dumps(tables)
         mockRequestMethod.return_value = response
-
-        self.assertEqual(self.client.requestTotalTables().text, totalTables)
+        self.assertEqual(self.client.requestTotalTables(), tables["tables"])
 
     @patch("requests.get")
     def testRequestAvailableSizes(self, mockRequestMethod):

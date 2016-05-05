@@ -6,7 +6,7 @@ from django.test import TestCase, Client
 from django.core.exceptions import ValidationError
 
 from .models import Table
-#from .views import sendTableSizes
+from .views import sendTotalTables
 
 from unittest.mock import patch, MagicMock, call
 from model_mommy import mommy
@@ -83,18 +83,22 @@ class ViewTests(TestCase):
                             "time":  "23:15",
                             "table": "3"}
 
-#    @patch("booking.views.Table.objects.filter")
-#    def testSendTableSize(self, mockFilter):
-#        """
-#        Tests whether the server is able to find all table sizes and then
-#        send the information to the client.
-#        """
-#        sizes = [1, 2, 3]
-#
-#        mockRequest = MagicMock()
-#        mockRequest.method = "GET"
-#        mockFilter.return_value = sizes
-#
-#        response = sendTableSizes(mockRequest)
-#        data = json.loads(response.content.decode("utf-8"))
-#        self.assertEqual(data["sizes"], sizes)
+    @patch("table.views.Table")
+    def testSendTableSize(self, mockTable):
+        """
+        Tests whether the server is able to find all tables and then
+        send the information to the client.
+        """
+        table1 = MagicMock(number=1)
+        table2 = MagicMock(number=3)
+        table3 = MagicMock(number=3333)
+        tables = [table1, table2, table3]
+        tableNumbers = [table1.number, table2.number, table3.number]
+
+        mockRequest = MagicMock()
+        mockRequest.method = "GET"
+        mockTable.objects.all.return_value = tables
+
+        response = sendTotalTables(mockRequest)
+        data = json.loads(response.content.decode("utf-8"))
+        self.assertEqual(data["tables"], tableNumbers)

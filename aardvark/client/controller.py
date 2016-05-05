@@ -38,8 +38,7 @@ class MainController:
         self.app = QApplication(sys.argv)
         self.client = Client(self.getServerSocket())
         self.menu = self.client.requestMenu()
-#        self.totalTables = self.client.requestTotalTables()
-        self.window = MainView(self.menu, 200)
+        self.window = MainView(self.menu, self.client.requestTotalTables())
 
         self.initialiseSettings()
         self.initialiseViewControllers()
@@ -176,7 +175,6 @@ class OrderViewController:
             self.orderView.orderScreen.showSuccessPopup()
         else:
             self.orderView.orderScreen.showFailPopup()
-
 
     def handleBackButtonClick(self):
         """
