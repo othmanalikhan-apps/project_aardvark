@@ -267,6 +267,18 @@ class ClientTest(unittest.TestCase):
         for foodData in response.text:
             self.assertDictEqual(foodData["fields"], self.jsonFood)
 
+    @patch("requests.post")
+    def testSendPayment(self, requestPostMethod):
+        """
+        Tests whether the client can send the payment to a mock object
+        representing the server.
+        """
+        requestPostMethod.return_value = None
+
+        paid, table = 120.50, 3
+        response = self.client.sendPayment(paid, table)
+        self.assertEqual(response, None)
+
 
 class ReservationTest(unittest.TestCase):
     """

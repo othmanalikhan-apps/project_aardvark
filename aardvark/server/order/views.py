@@ -56,3 +56,21 @@ def calculateBill(request):
 
         billData["bill"] = bill
         return HttpResponse(json.dumps(billData), content_type="application/json")
+
+def updateBill(request):
+    """
+    Pays all order items for a table.
+
+    :param request: A django request object.
+    :return: An empty HTTP response object.
+    """
+    if request.method == "POST":
+        table = Table.objects.get(number=request.POST["table"])
+        orders = Order.objects.filter(table=table, isHistory=False)
+
+        for order in orders:
+            order.isPaid = True
+            order.isHistory = True
+            order.save()
+
+        return HttpResponse()

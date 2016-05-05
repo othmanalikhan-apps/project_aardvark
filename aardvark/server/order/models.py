@@ -26,8 +26,9 @@ class Order(models.Model):
                              null=True,
                              on_delete=models.SET_NULL,
                              unique=False)
-    quantity = models.PositiveIntegerField()
-    isHistory = models.BooleanField()
+    quantity = models.PositiveIntegerField(blank=False, null=False)
+    isHistory = models.BooleanField(blank=False, null=False, default=False)
+    isPaid = models.BooleanField(blank=False, null=False, default=False)
 
     def __str__(self):
         """
@@ -39,7 +40,7 @@ class Order(models.Model):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("table", "food", "quantity", "isHistory")
+    list_display = ("table", "food", "quantity", "isHistory", "isPaid")
     ordering = ("isHistory", "table")
     list_per_page = 25
 

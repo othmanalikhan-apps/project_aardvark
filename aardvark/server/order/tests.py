@@ -2,7 +2,7 @@ import requests
 from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
 
-from .views import updateOrder, calculateBill
+from .views import updateOrder, calculateBill, updateBill
 from .models import Order
 from table.models import Table
 from menu.models import Food
@@ -111,6 +111,29 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, requests.codes.ok)
         self.assertEqual(data["bill"], 30)
 
+    @patch("order.views.Order")
+    @patch("order.views.Table")
+    def testCalculateBill(self, mockTable, mockOrder):
+        """
+        Tests whether the server is able to calculate the bill for a table from
+        the client.
+        """
+        requestData = {"paid": 100, "table": 3}
+        mockRequest = MagicMock()
+        mockRequest.method = "POST"
+        mockRequest.content.decode.return_value = json.dumps(requestData)
+
+        order = MagicMock()
+        order.isPaid = False
+
+        mockTable.objects.get.return_value = MagicMock()
+        mockOrder.objects.filter.return_value = [order]
+
+        response = updateBill(mockRequest)
+
+        self.assertEqual(response.status_code, requests.codes.ok)
+        self.assertEqual(order.isPaid, True)
+
 
 ############################### INTEGRATION TESTS ##############################
 
@@ -186,3 +209,14 @@ class IntegrationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(billData["bill"], 1000)
+
+    def testUpdateBillForClient(self):
+        """
+        Tests whether the server is able to update the bill for a given
+        table supplied from the client.
+        """
+        data = {"table": 1, "paid": 120.50}
+        client = Client()
+        response = client.post(reverse("order-payment"), data)
+
+        self.assertEqual(response.status_code, 200)

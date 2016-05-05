@@ -405,9 +405,22 @@ class PaymentViewController:
         """
         Event handler that sends the value in the payment field to the server.
         """
+        fieldFormat = "{:.2f}"
+
         paid = self.paymentView.paymentScreen.paymentField.getValue()
-#        self.client.sendPayment(paid)
-        print("You've clicked the pay button")
+        response = self.client.sendPayment(str(paid), self.tableNumber)
+
+        if response.status_code == requests.codes.ok:
+            # Display paid value
+            paidFormatted = fieldFormat.format(int(paid))
+            self.paymentView.paymentScreen.setPaidFieldValue(paidFormatted)
+
+            # Calculates the change locally and then displays it
+            paid = float(self.paymentView.paymentScreen.paidField.getValue())
+            total = float(self.paymentView.paymentScreen.totalField.getValue())
+            change = paid - total
+            changeFormatted = fieldFormat.format(change)
+            self.paymentView.paymentScreen.setChangeFieldValue(changeFormatted)
 
     def handleBackButtonClick(self):
         """
@@ -425,7 +438,8 @@ class PaymentViewController:
         """
         fieldFormat = "{:.2f}"
 
-        self.paymentView.displayPaymentScreen(tableNumber)
+        self.tableNumber = tableNumber
+        self.paymentView.displayPaymentScreen(self.tableNumber)
 
         # Fetches the total bill from the server and then displays it
         total = float(self.client.requestTotalBill(tableNumber))

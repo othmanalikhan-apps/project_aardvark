@@ -30,7 +30,8 @@ class Client:
                       "getBookingSizes": "/booking/sizes",
                       "getBookingTables": "/booking/tables",
                       "submitOrder": "/order/submit",
-                      "getBill": "/order/bill"}
+                      "getBill": "/order/bill",
+                      "sendPayment": "/order/payment"}
 
         self.tableToURL = {}
         for table, dir in tableToDir.items():
@@ -95,6 +96,17 @@ class Client:
             JsonMenu.append({"fields": JsonFood})
 
         response = requests.post(self.tableToURL["sendMenu"], data=JsonMenu)
+        return response
+
+    def sendPayment(self, paid, table):
+        """
+        Sends the server the payment.
+
+        :param: The amount paid.
+        :return: An http response object of the post request.
+        """
+        payment = {"paid": paid, "table": table}
+        response = requests.post(self.tableToURL["sendPayment"], payment)
         return response
 
     def requestMenu(self):
