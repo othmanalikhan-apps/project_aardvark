@@ -11,17 +11,21 @@ class Order(models.Model):
         :food:          The food item from the restaurant menu associated
                         with the order.
         :quantity:      The amount of food ordered.
+        :isHistory:     Boolean that indicates whether the order has expired
+                        (used for distinguishing between fresh orders and
+                        orders from history)
     """
-    table = models.OneToOneField("table.Table",
-                                 blank=False,
-                                 null=True,
-                                 on_delete=models.SET_NULL,
-                                 related_name="table_ordered")
-    food = models.OneToOneField("menu.Food",
-                                 blank=False,
-                                 null=True,
-                                 on_delete=models.SET_NULL)
+    table = models.ForeignKey("table.Table",
+                              blank=False,
+                              null=True,
+                              on_delete=models.SET_NULL,
+                              related_name="table_ordered")
+    food = models.ForeignKey("menu.Food",
+                             blank=False,
+                             null=True,
+                             on_delete=models.SET_NULL)
     quantity = models.PositiveIntegerField()
+    isHistory = models.BooleanField()
 
     def __str__(self):
         """
@@ -33,9 +37,9 @@ class Order(models.Model):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ("table", "food")
-    ordering = ("table",)
+    list_display = ("table", "food", "quantity", "isHistory")
+    ordering = ("isHistory", "table")
     list_per_page = 25
 
-    search_fields = ("table", "food")
-    list_filter = ("table", "food")
+    search_fields = ("table", "food", "quantity")
+    list_filter = ("table", "food", "quantity")

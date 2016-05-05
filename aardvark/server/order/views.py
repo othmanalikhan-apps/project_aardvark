@@ -30,7 +30,29 @@ def updateOrder(request):
             table = Table.objects.get(number=order["table"])
             food = Food.objects.get(name=order["food"])
             quantity = order["quantity"]
-            Order.objects.create(table=table, food=food, quantity=quantity)
+            Order.objects.create(table=table,
+                                 food=food,
+                                 quantity=quantity,
+                                 isHistory=False)
 
     return HttpResponse()
 
+def calculateBill(request):
+    """
+    Gets all the orders for a table then proceeds to calculate the total bill.
+
+    :param request: A django request object.
+    :return: An HTTP response object that contains the bill.
+    """
+    bill = 0
+    billData = {"bill": bill}
+
+    if request.method == "GET":
+        table = Table.objects.get(number=request.GET["table"])
+        orders = Order.objects.filter(table=table, isHistory=False)
+
+        for order in orders:
+            bill += int(order.food.price) * int(order.quantity)
+
+        billData["bill"] = bill
+        return HttpResponse(json.dumps(billData), content_type="application/json")
