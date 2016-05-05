@@ -1,9 +1,8 @@
 import requests
 from django.core.urlresolvers import reverse
 from django.test import TestCase, Client
-from django.core.exceptions import ValidationError
 
-from .views import updateOrder
+from .views import updateOrder, calculateBill
 from .models import Order
 from table.models import Table
 from menu.models import Food
@@ -50,7 +49,7 @@ class ViewTests(TestCase):
                                      "food": "banana",
                                      "quantity": 10},
 
-                                    {"table": 2,
+                                    {"table": 1,
                                      "food": "orange",
                                      "quantity": 1111}]}
 
@@ -75,11 +74,42 @@ class ViewTests(TestCase):
 
         response = updateOrder(mockRequest)
 
-        calls = [call(table=self.mockTable, food=self.mockFood, quantity=10),
-                 call(table=self.mockTable, food=self.mockFood, quantity=1111)]
+        calls = [call(table=self.mockTable,
+                      food=self.mockFood,
+                      quantity=10,
+                      isHistory=False),
+                 call(table=self.mockTable,
+                      food=self.mockFood,
+                      quantity=1111,
+                      isHistory=False)]
 
         self.assertEqual(response.status_code, requests.codes.ok)
         mockOrder.objects.create.assert_has_calls(calls)
+
+    @patch("order.views.Order")
+    @patch("order.views.Table")
+    def testCalculateBill(self, mockTable, mockOrder):
+        """
+        Tests whether the server is able to calculate the bill for a table from
+        the client.
+        """
+        requestData = {"table": 1}
+        mockRequest = MagicMock()
+        mockRequest.method = "GET"
+        mockRequest.body.decode.return_value = json.dumps(requestData)
+
+        order = MagicMock()
+        order.food.price = 10
+        order.quantity = 3
+
+        mockTable.objects.get.return_value = MagicMock()
+        mockOrder.objects.filter.return_value = [order]
+
+        response = calculateBill(mockRequest)
+        data = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, requests.codes.ok)
+        self.assertEqual(data["bill"], 30)
 
 
 ############################### INTEGRATION TESTS ##############################
@@ -117,6 +147,17 @@ class IntegrationTests(TestCase):
                                     price=12.00,
                                     popularity=13)
 
+        order1 = Order.objects.create(table=self.table1,
+                                      food=food1,
+                                      quantity=100,
+                                      isHistory=False)
+
+        order2 = Order.objects.create(table=self.table1,
+                                      food=food1,
+                                      quantity=100,
+                                      isHistory=True)
+
+
     def testReceiveOrderFromClient(self):
         """
         Tests whether the server is able to receive order information from
@@ -127,9 +168,21 @@ class IntegrationTests(TestCase):
                                json.dumps(self.orderData),
                                content_type="application/json")
 
-        order = Order.objects.get(table=self.table1)
+        order = Order.objects.filter(table=self.table1, isHistory=False)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(order.table.number, 1)
-        self.assertEqual(order.food.price, 10.00)
+        self.assertEqual(order[0].table.number, 1)
+        self.assertEqual(order[0].food.price, 10.00)
 
+    def testCalculateBillForClient(self):
+        """
+        Tests whether the server is able to calculate the bill for a given
+        table supplied from the client and return the results.
+        """
+        data = {"table": 1}
+        client = Client()
+        response = client.get(reverse("order-bill"), data)
+        billData = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(billData["bill"], 1000)
