@@ -40,6 +40,7 @@ def loadPaths():
     for path in pathList:
         sys.path.append(path)
 
+
 def readme():
     """
     Opens the README file and returns it's contents
@@ -73,9 +74,10 @@ class RunClientCommand(Command):
         Semantically, runs 'python aardvark/client/controller.py' on the
         command line.
         """
-        path = os.path.join("aardvark", "client", "controller.py")
-        errno = subprocess.call([sys.executable, path])
-        if errno != 0:
+        import aardvark.client.controller as controller
+        try:
+            controller.main()
+        except Exception:
             raise SystemExit("Unable to run client GUI!")
 
 
@@ -204,7 +206,9 @@ class CleanCommand(Command):
         """
         ignoreDirs = ["aardvark", "test", "doc", ".git", ".idea", "asset"]
         ignoreFiles = [".gitignore", ".gitlab-ci.yml", "README.md",
-                       "setup.py", "settings.ini", "pytest.ini", "LICENSE"]
+                       "setup.py", "settings.ini", "pytest.ini", "LICENSE",
+                       "install.bat", "runClient.bat", "runServer.bat",
+                       "requirements.txt"]
 
 
         deleteDirs = [dir for dir in os.listdir(".")
@@ -282,32 +286,34 @@ class RunDocCommand(Command):
         webbrowser.open('file://' + os.path.realpath(relativePath))
 
 
-class InstallInVirtualEnv(install):
-    """
-    A command class to install the project in a virtual environment
-    (cross-platform).
-    """
-
-    def run(self):
-        """
-        Setups up the virtual environment, activates it and then installs the
-        project and it's dependencies (cross-platform).
-        """
-        errno1 = subprocess.call('virtualenv venv', shell=True)
-
-        if _platform == "win32":
-            errno2 = subprocess.call('activate', shell=True)
-
-        elif _platform == "linux" or _platform == "linux2":
-            path = os.path.join("venv", "bin", "activate")
-            errno2 = subprocess.call('source ' + path, shell=True)
-
-        install.run(self)
-
-        if errno1 != 0:
-            raise SystemExit("Unable to setup the virtual environment!")
-        if errno2 != 0:
-            raise SystemExit("Unable to activate the virtual environment!")
+# class InstallInVirtualEnv(install):
+#     """
+#     A command class to install the project in a virtual environment
+#     (cross-platform).
+#     """
+#
+#     def run(self):
+#         """
+#         Setups up the virtual environment, activates it and then installs the
+#         project and it's dependencies (cross-platform).
+#         """
+#         errno1 = subprocess.call('virtualenv aardvark-venv', shell=True)
+#
+#         if _platform == "win32":
+#             errno2 = subprocess.call('activate aardvark-venv', shell=True)
+#
+#         elif _platform == "linux" or _platform == "linux2":
+#             path = os.path.join("aardvark-venv", "bin", "activate")
+#             errno2 = subprocess.call('source ' + path, shell=True)
+#
+#         errno3 = subprocess.call('pip install requirements.txt', shell=True)
+#
+#         install.run(self)
+#
+#         if errno1 != 0:
+#             raise SystemExit("Unable to setup the virtual environment!")
+#         if errno2 != 0:
+#             raise SystemExit("Unable to activate the virtual environment!")
 
 
 setup(
@@ -319,7 +325,7 @@ setup(
                       'pytest', "model_mommy"],
 
     cmdclass={
-        'runInstall': InstallInVirtualEnv,
+        # 'runInstall': InstallInVirtualEnv,
         'runClient': RunClientCommand,
         'runServer': RunServerCommand,
         'runTest': PyTestCommand,
