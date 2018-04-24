@@ -10,24 +10,22 @@ to explore software development methodologies. In particular, we adapted a
 Scrum approach (see Wiki).
 
 
-## Screenshots
-
-## Splash
+## Screenshot: Splash Menu
 <p align="center">
   <img align="middle" src="asset/demo_splash.png">
 </p>
 
-## Menu
+## Screenshot: Restaurant Menu
 <p align="center">
 <img align="middle" width=800 src="asset/demo_menu.png">
 </p>
 
-## Order
+## Screenshot: Order Menu
 <p align="center">
 <img align="middle" width=800 src="asset/demo_order.png">
 </p>
 
-## Booking
+## Screenshot: Booking Menu
 <p align="center">
 <img align="middle" width=800 src="asset/demo_booking.png">
 </p>
