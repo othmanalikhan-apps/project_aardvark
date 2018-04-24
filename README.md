@@ -1,13 +1,13 @@
 ## Team Aardvark--Restaurant Booking And Billing System
 
-This project represents a client-server desktop application intended to be used
-in restaurants for management purposes. The front-end is a PyQt desktop
-application while the backend runs a Django server.
+This project represents a client-server desktop application for restaurant
+management. The front-end is a PyQt desktop application while the backend
+runs a desktop Django server.
 
-Team Aardvark was the name of our group for the 2nd year group project at
-University. In addition to the final product, the intention of the project was
-to explore software development methodologies. In particular, we adapted a
-Scrum approach (see Wiki).
+Team Aardvark was our group name for the 2nd year project at University.
+In addition to the final product (see below), the intention of the project was
+to explore software development methodologies. In particular, we explored
+Scrum (see Wiki).
 
 
 ## Screenshot: Splash Menu
@@ -33,10 +33,10 @@ Scrum approach (see Wiki).
 
 ## Key Features
 
-* Restaurant menu is fetched from Django server and can be easily modified.
-* Booking of available slots through client application.
-* Implementation of a restaurant menu cart associated with a table.
-* Handling of customer payment and storing transaction history (incomplete)
+* Easily modifiable restaurant menu that is fetched from the Django server.
+* Booking of available slots through the client application.
+* Implementation of a restaurant menu cart for each table.
+* Handling of customer payments and storing transaction history (incomplete).
 
 
 ## Requirements
@@ -51,23 +51,24 @@ Scrum approach (see Wiki).
 
 ## How to Run
 
-#### Simple Method
+### Simple Method
 
-Automatically create a local virtual environment and install the necessary
-packages into it by running:
+Create and install the needed environment (virtual environment and required
+packages) by simply running the following script:
 
     install.bat
 
-Thereafter, launch the server and then connect to it via a client by running:
+Now launch the server then connect to it via the client by running the
+following scripts:
 
-    runClient.bat
     runServer.bat
+    runClient.bat
 
-#### Fight Me Method
+### Fight Me Method
 
-You can manually install the necessary packages thereafter invoking the server
-and client via `setup.py`. The full list of commands available are mentioned
-below:
+Otherwise, if you prefer an unnecessary challenge, you can manually install
+the dependencies thereafter invoking the server and client via `setup.py`.
+The full list of commands available are mentioned below:
 
     python setup.py runClient
     python setup.py runServer
