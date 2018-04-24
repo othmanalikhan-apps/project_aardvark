@@ -97,3 +97,9 @@ For further built-in **bonus** commands by default, seek help via:
 ## License
 
 This code is distributed under the MIT license. For further information, see the LICENSE file.
+
+
+## Credits
+
+- Aardvark logo: http://www.clker.com/clipart-148687.html
+- Sample floor plan: http://www.ezblueprint.com/p7lsm_img_2/fullsize/restaurant1_fs.jpg
