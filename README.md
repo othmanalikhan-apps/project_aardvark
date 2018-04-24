@@ -1,19 +1,44 @@
 ## Team Aardvark--Restaurant Booking And Billing System
 
-The project represents a client-server desktop application to be used in restaurants for management purposes.
+This project represents a client-server desktop application intended to be used
+in restaurants for management purposes. The front-end is a PyQt desktop
+application while the backend runs a Django server.
 
-![](assets/demo_splash.png)
-![](assets/demo_menu.png)
-![](assets/demo_order.png)
-![](assets/demo_booking.png)
+Team Aardvark was the name of our group for the 2nd year group project at
+University. In addition to the final product, the intention of the project was
+to explore software development methodologies. In particular, we adapted a
+Scrum approach (see Wiki).
+
+
+## Screenshots
+
+## Splash
+<p align="center">
+  <img align="middle" src="asset/demo_splash.png">
+</p>
+
+## Menu
+<p align="center">
+<img align="middle" width=800 src="asset/demo_menu.png">
+</p>
+
+## Order
+<p align="center">
+<img align="middle" width=800 src="asset/demo_order.png">
+</p>
+
+## Booking
+<p align="center">
+<img align="middle" width=800 src="asset/demo_booking.png">
+</p>
 
 
 ## Key Features
 
-* Booking restaurant tables at some time slot
-* Storing and manging the menu
-* Handling customer orders
-* Handling customer payment
+* Restaurant menu is fetched from Django server and can be easily modified.
+* Booking of available slots through client application.
+* Implementation of a restaurant menu cart associated with a table.
+* Handling of customer payment and storing transaction history (incomplete)
 
 
 ## Requirements
