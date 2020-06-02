@@ -1,5 +1,5 @@
 Django==2.0.2
-Sphinx==1.6.3
+Sphinx==3.0.4
 model-mommy==1.5.1
 requests==2.18.4
 pyqt5==5.10.1
