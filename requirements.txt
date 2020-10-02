@@ -3,3 +3,5 @@ Sphinx==1.6.3
 model-mommy==1.5.1
 requests==2.18.4
 pyqt5==5.10.1
+
+urllib3>=1.25.9 # not directly required, pinned by Snyk to avoid a vulnerability
