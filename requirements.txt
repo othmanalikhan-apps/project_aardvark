@@ -1,4 +1,4 @@
-Django==2.0.2
+Django==2.2.22
 Sphinx==1.6.3
 model-mommy==1.5.1
 requests==2.18.4
